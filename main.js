@@ -16,11 +16,21 @@ let player = {
 
 // --- FUNKCJE POMOCNICZE ---
 window.logMsg = function(msg, type='log-new') { logs.unshift(`<span class="${type}">• ${msg}</span><br>`); if(logs.length > 7) logs.pop(); document.getElementById('log-box').innerHTML = logs.join(''); };
-window.closeOverlay = function(id) { state = 'EXPLORE'; document.getElementById(id).style.display = 'none'; keys={w:false,a:false,s:false,d:false}; };
-window.openOverlay = function(id) { state = 'MENU'; document.getElementById(id).style.display = 'flex'; };
+
+// WAŻNE: Funkcja gasząca WSZYSTKIE nakładki (Naprawia buga z zablokowaniem u Kowala)
+window.closeAllOverlays = function() {
+    document.querySelectorAll('.overlay-ui').forEach(el => el.style.display = 'none');
+    state = 'EXPLORE'; keys={w:false,a:false,s:false,d:false};
+};
+
+window.openOverlay = function(id) { 
+    window.closeAllOverlays();
+    state = 'MENU'; 
+    document.getElementById(id).style.display = 'flex'; 
+};
 
 // --- SYSTEM KONT ---
-const STORAGE_KEY = 'fo_fps_final'; 
+const STORAGE_KEY = 'fo_fps_v3'; 
 window.currentUser = null;
 
 window.getAccounts = function() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e) { return {}; } };
@@ -58,7 +68,7 @@ window.loadGame = function() {
     if(!s) { alert(`Brak zapisu!`); return; }
     player = s.player; map = s.map; entities = s.entities; currentLevel = s.currentLevel; logs = s.logs || [];
     document.getElementById('main-menu').style.display = 'none'; document.getElementById('game-view').style.display = 'block';
-    window.updateWeaponView(); buildCSS3D(map, entities, player, 'human'); state = 'EXPLORE'; requestAnimationFrame(gameLoop);
+    window.updateWeaponView(); buildCSS3D(map, entities, player); state = 'EXPLORE'; requestAnimationFrame(gameLoop);
     window.logMsg(`💾 Wczytano grę.`, "log-epic");
 };
 
@@ -107,6 +117,7 @@ window.selectSlot = function(idx) {
 window.updateWeaponView = function() { document.getElementById('weapon-view').innerText = player.weapon.sym; };
 window.startGameSingle = function() {
     document.getElementById('main-menu').style.display = 'none'; document.getElementById('game-view').style.display = 'block';
+    difficulty = parseInt(document.getElementById('diff-selector').value);
     player.hp = 100; player.inventory.fill(null); window.addToInventory('pot', 2); window.updateWeaponView(); window.generateLevel(); state = 'EXPLORE'; requestAnimationFrame(gameLoop);
 };
 window.generateLevel = function() {
@@ -127,10 +138,10 @@ window.generateLevel = function() {
     for(let i=0; i<4; i++) { let p=empty(); entities.push({x:p.x+0.5, z:p.z+0.5, sym: '⛓️', id: 'steel'}); }
     for(let i=0; i<5+currentLevel; i++) { let p = empty(); let mob = MOBS[Math.floor(Math.random()*MOBS.length)]; entities.push({x:p.x+0.5, z:p.z+0.5, sym: mob.s, isEnemy: true, name: mob.n, hp: mob.hp, maxHp: mob.hp, dmg: mob.d}); }
 
-    buildCSS3D(map, entities, player, 'human'); window.updateInventoryUI();
+    buildCSS3D(map, entities, player); window.updateInventoryUI();
 };
 
-// --- PĘTLA GRY (FPS MOVEMENT) ---
+// --- PĘTLA GRY (FPS PŁYNNY RUCH) ---
 let isMoving = false;
 let lastRenderPos = {x:0, z:0};
 
@@ -146,6 +157,7 @@ function gameLoop() {
         let wep = document.getElementById('weapon-view');
         if(moved && !isMoving) { wep.classList.add('walking-bob'); isMoving = true; } else if(!moved && isMoving) { wep.classList.remove('walking-bob'); isMoving = false; }
 
+        // Kolizja Płynna
         let margin = 0.2;
         if(map[Math.floor(player.z)][Math.floor(nx + (nx>player.x?margin:-margin))] === T_FLOOR) player.x = nx;
         if(map[Math.floor(nz + (nz>player.z?margin:-margin))][Math.floor(player.x)] === T_FLOOR) player.z = nz;
@@ -157,13 +169,18 @@ function gameLoop() {
             let e = entities[i]; let dist = Math.sqrt((player.x - e.x)**2 + (player.z - e.z)**2);
             if(dist < 0.8) {
                 if(!e.isEnemy) { if(window.addToInventory(e.id, 1)) { window.logMsg(`Zebrałeś: ${ITEM_DB[e.id].name}`); document.getElementById(`ent_${i}`).remove(); entities.splice(i, 1); } } 
-                else { currentEnemy = e; window.openOverlay('combat-overlay'); document.getElementById('c-enemy-name').innerText = currentEnemy.name; document.getElementById('enemy-sprite').innerText = currentEnemy.sym; window.updateCombatUI(); }
+                else { currentEnemy = e; window.openOverlay('combat-overlay'); document.getElementById('c-enemy-name').innerText = currentEnemy.name; window.updateCombatUI(); }
+            }
+            // Gonitwa potworów jeśli tryb Normalny (difficulty 2)
+            if(difficulty === 2 && e.isEnemy && Math.random() < 0.02) {
+                let dx = Math.sign(player.x - e.x)*0.1; let dz = Math.sign(player.z - e.z)*0.1;
+                if(map[Math.floor(e.z)][Math.floor(e.x+dx)] === T_FLOOR) e.x += dx;
+                if(map[Math.floor(e.z+dz)][Math.floor(e.x)] === T_FLOOR) e.z += dz;
             }
         }
         
-        // Zoptymalizowana przebudowa świata (tylko co całą kratkę!)
         if(Math.floor(player.x) !== lastRenderPos.x || Math.floor(player.z) !== lastRenderPos.z) {
-            buildCSS3D(map, entities, player, 'human'); lastRenderPos.x = Math.floor(player.x); lastRenderPos.z = Math.floor(player.z);
+            buildCSS3D(map, entities, player); lastRenderPos.x = Math.floor(player.x); lastRenderPos.z = Math.floor(player.z);
         } else { updateCamera(player); }
         
         drawMinimap(map, entities, player);
@@ -195,7 +212,7 @@ window.combatAction = function(action) {
     if(action === 'Bomba') { if(window.removeInv('bomb', 1)) { currentEnemy.hp -= 100; window.logMsg("BUM! 100 obr!"); } else { window.logMsg("Brak bomb!"); return; } }
     if(action === 'Mikstura') { if(window.removeInv('pot', 1)) { player.hp = Math.min(player.maxHp, player.hp+50); window.logMsg("Leczysz się."); } else return; }
     
-    if(currentEnemy.hp <= 0) { window.logMsg(`Zwycięstwo! +25 monet.`, "log-heal"); player.coins += 25; let el = document.getElementById(`ent_${entities.indexOf(currentEnemy)}`); if(el) el.remove(); entities.splice(entities.indexOf(currentEnemy), 1); window.closeOverlay('combat-overlay'); currentEnemy = null; window.updateHUD(); return; }
+    if(currentEnemy.hp <= 0) { window.logMsg(`Zwycięstwo! +25 monet.`, "log-heal"); player.coins += 25; let el = document.getElementById(`ent_${entities.indexOf(currentEnemy)}`); if(el) el.remove(); entities.splice(entities.indexOf(currentEnemy), 1); window.closeAllOverlays(); currentEnemy = null; window.updateHUD(); return; }
     
     let enemyDmg = Math.max(1, (currentEnemy.dmg + Math.floor(Math.random()*5)) - arm); player.hp -= enemyDmg; window.logMsg(`Otrzymujesz ${enemyDmg} obr!`, "log-dmg"); 
     if(player.hp <= 0) { player.hp = 0; window.logMsg("💀 ZGINĄŁEŚ!"); alert("Zginąłeś!"); location.reload(); }
@@ -206,7 +223,7 @@ window.combatAction = function(action) {
 window.addEventListener('keydown', e => { 
     let k = e.key.toLowerCase(); if(keys.hasOwnProperty(k)) keys[k] = true; 
     if(k==='e' && state==='EXPLORE') { window.openOverlay('inventory-overlay'); window.updateInventoryUI(); window.updateHUD(); }
-    else if(k==='e' && state==='MENU') { window.closeOverlay('inventory-overlay'); window.closeOverlay('crafting-overlay'); }
+    else if(k==='e' && state==='MENU') { window.closeAllOverlays(); }
     if(!isNaN(k) && k>0 && k<=9 && state==='EXPLORE') window.selectSlot(k-1);
 });
 window.addEventListener('keyup', e => { let k = e.key.toLowerCase(); if(keys.hasOwnProperty(k)) keys[k] = false; });
