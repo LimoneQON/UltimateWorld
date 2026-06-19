@@ -26,8 +26,8 @@ export const RECIPES = [
     {name: "Stalowy Miecz (+15 Dmg)", req: {steel: 3, wood: 1}, action: (p)=>{ p.weapon = WEAPONS[1]; window.updateWeaponView(); window.logMsg("Wykuto Miecz!"); }},
     {name: "Topór (+35 Dmg)", req: {steel: 10, fire: 5}, action: (p)=>{ p.weapon = WEAPONS[2]; window.updateWeaponView(); window.logMsg("Wykuto Topór!"); }},
     {name: "Żelazna Zbroja (+15 Def)", req: {steel: 8}, action: (p)=>{ p.armor = ARMORS[1]; window.logMsg("Wykuto Zbroję!"); }},
-    {name: "Mikstura Leczenia", req: {wood: 1}, action: (p)=>{ window.addToInventory('pot', 1); window.logMsg("Uwarzono Miksturę!"); }},
-    {name: "Bomba", req: {fire: 2, steel: 1}, action: (p)=>{ window.addToInventory('bomb', 1); window.logMsg("Zbudowano Bombę!"); }}
+    {name: "Mikstura Leczenia", req: {wood: 2}, action: (p)=>{ window.addToInventory('pot', 1); window.logMsg("Uwarzono Miksturę!"); }},
+    {name: "Bomba Obszarowa", req: {fire: 2, steel: 1}, action: (p)=>{ window.addToInventory('bomb', 1); window.logMsg("Zbudowano Bombę!"); }}
 ];
 
 export const MOBS = [ {n: "Wilk", s: "🐺", hp: 30, d: 8}, {n: "Goblin", s: "👺", hp: 40, d: 12}, {n: "Demon", s: "👿", hp: 100, d: 25} ];
