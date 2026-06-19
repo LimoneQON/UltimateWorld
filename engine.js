@@ -10,12 +10,10 @@ export function createBlock(x, z, cls, html, container) {
 }
 
 export function buildCSS3D(map, entities, player) {
-    let world = document.getElementById('world'); 
-    
-    // Usuń stare ściany i sprite'y, zostaw podłogę i sufit
-    Array.from(world.children).forEach(c => { if(!c.classList.contains('plane')) world.removeChild(c); });
+    let worldContent = document.getElementById('world-content'); 
+    worldContent.innerHTML = ''; // Czyścimy tylko ściany! Podłoga jest w nadrzędnym DIVie!
 
-    // Render Distance - budujemy tylko ściany w promieniu 5 kratek! (Zero lagów)
+    // Render Distance (Culling) - generuje tylko blisko gracza
     const RD = 5;
     for(let z = Math.max(0, Math.floor(player.z) - RD); z <= Math.min(MAP_SIZE-1, Math.floor(player.z) + RD); z++) {
         for(let x = Math.max(0, Math.floor(player.x) - RD); x <= Math.min(MAP_SIZE-1, Math.floor(player.x) + RD); x++) {
@@ -24,17 +22,16 @@ export function buildCSS3D(map, entities, player) {
                 let cls = `wall tex-human`; let html = "";
                 if(t === T_PORTAL) { cls += ' tex-portal'; html = "<div class='wall-text'>PORTAL</div>"; }
                 if(t === T_EXIT) { cls += ' tex-exit'; html = "<div class='wall-text'>WYJŚCIE</div>"; }
-                createBlock(x, z, cls, html, world);
+                createBlock(x, z, cls, html, worldContent);
             }
         }
     }
 
-    // Renderowanie sprite'ów
     entities.forEach((e, idx) => {
         if(Math.abs(e.x - player.x) <= RD && Math.abs(e.z - player.z) <= RD) {
             let s = document.createElement('div'); s.className = 'sprite'; s.innerHTML = e.sym; s.id = `ent_${idx}`;
             s.style.transform = `translate3d(${e.x*TILE_SIZE}px, 0, ${e.z*TILE_SIZE}px) rotateY(${-player.rot}deg)`;
-            world.appendChild(s);
+            worldContent.appendChild(s);
         }
     });
 
@@ -46,7 +43,6 @@ export function updateCamera(player) {
     document.getElementById('camera').style.transform = `translateZ(100px) rotateY(${-player.rot}deg)`;
     document.getElementById('world').style.transform = `translate3d(${-px}px, 0, ${-pz}px)`;
     
-    // Obracamy potwory twarzą do gracza
     document.querySelectorAll('.sprite').forEach(s => {
         let coords = s.style.transform.match(/translate3d\((.*?)px, 0px, (.*?)px\)/);
         if(coords) s.style.transform = `translate3d(${coords[1]}px, 0, ${coords[2]}px) rotateY(${player.rot}deg)`;
@@ -66,6 +62,6 @@ export function drawMinimap(map, entities, player) {
     }
     entities.forEach(e => { mCtx.fillStyle = e.isEnemy ? '#f33' : '#fc0'; mCtx.fillRect(e.x*TS-1, e.z*TS-1, 4, 4); });
     
-    mCtx.fillStyle = '#5f5'; mCtx.beginPath(); mCtx.arc(player.x*TS, player.z*TS, 3, 0, Math.PI*2); mCtx.fill();
-    mCtx.beginPath(); mCtx.moveTo(player.x*TS, player.z*TS); mCtx.lineTo(player.x*TS + Math.sin(player.rot*Math.PI/180)*10, player.z*TS - Math.cos(player.rot*Math.PI/180)*10); mCtx.strokeStyle='#5f5'; mCtx.stroke();
+    mCtx.save(); mCtx.translate(player.x * TS + TS/2, player.z * TS + TS/2); mCtx.rotate(player.dir * Math.PI/2); 
+    mCtx.fillStyle = '#5f5'; mCtx.beginPath(); mCtx.moveTo(0, -TS/2); mCtx.lineTo(TS/2, TS/2); mCtx.lineTo(-TS/2, TS/2); mCtx.fill(); mCtx.restore();
 }
