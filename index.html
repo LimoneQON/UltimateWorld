@@ -3,22 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fantasy Odyssey 3D - FPS</title>
+    <title>Fantasy Odyssey 3D - Raycaster Engine</title>
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-    <script>
-        window.onerror = function(msg, url, line) { alert("BŁĄD: " + msg + "\nLinia: " + line); };
-    </script>
-
     <div id="login-screen" class="fullscreen-ui">
         <div class="panel-box">
             <h1>FANTASY ODYSSEY</h1>
-            <p style="color:#aaa;">Płynny Silnik 3D (FPS) & Moduły</p>
-            <input type="text" id="acc-username" placeholder="Twój Login">
-            <input type="password" id="acc-password" placeholder="Twoje Hasło">
-            <button class="btn green" onclick="window.loginAccount()">Zaloguj się</button>
-            <button class="btn" onclick="window.registerAccount()">Stwórz konto</button>
+            <p style="color:#aaa;">Prawdziwy Silnik Raycaster (Wolfenstein 3D Style)</p>
+            <input type="text" id="acc-username" placeholder="Twój Login (min. 3 znaki)">
+            <input type="password" id="acc-password" placeholder="Hasło (min. 3 znaki)">
+            <button id="btn-login" class="btn green">Zaloguj się</button>
+            <button id="btn-register" class="btn">Stwórz konto</button>
         </div>
     </div>
 
@@ -26,32 +22,24 @@
         <div class="panel-box">
             <h1>MENU GŁÓWNE</h1>
             <p style="color:#5f5;">Witaj, <b id="logged-user-name"></b>!</p>
-            <button class="btn gold" onclick="window.loadGame()">💾 Wczytaj Grę</button>
+            <button id="btn-load" class="btn gold">💾 Wczytaj Grę</button>
             <hr style="border-color:#334; margin: 20px 0;">
             <select id="diff-selector">
-                <option value="1">Trudność: Łatwy</option>
-                <option value="2" selected>Trudność: Normalny (Aktywne Potwory)</option>
+                <option value="1">Trudność: Łatwy (Potwory stoją)</option>
+                <option value="2" selected>Trudność: Normalny (Gonitwa)</option>
             </select>
-            <button class="btn green" onclick="window.startGameSingle()">Nowa Gra</button>
-            <button class="btn red" onclick="window.logoutAccount()">Wyloguj</button>
+            <button id="btn-new-game" class="btn green">Nowa Gra</button>
+            <button id="btn-logout" class="btn red">Wyloguj</button>
         </div>
     </div>
 
     <div id="game-view" style="display:none;">
-        <div id="scene">
-            <div id="camera">
-                <div id="world">
-                    <div class="plane floor"></div>
-                    <div class="plane ceil"></div>
-                    <div id="world-content"></div>
-                </div>
-            </div>
-        </div>
-
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
         <div id="weapon-view">👊</div>
         
         <div id="hud">
-            <canvas id="minimap" width="180" height="180"></canvas>
+            <canvas id="minimap" width="160" height="160"></canvas>
             <div class="hud-stats">
                 HP: <span id="ui-hp" style="color:#f55;">100</span> / <span id="ui-maxhp">100</span><br>
                 Złoto: <span id="ui-coins" style="color:#fc0;">0</span><br>
@@ -74,9 +62,9 @@
                 </div>
                 <div class="inv-grid" id="inv-grid-main"></div>
                 <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button class="btn" style="background:#555; color:#fff;" onclick="window.openCrafting()">Kowal</button>
-                    <button class="btn" style="background:#262; color:#fff;" onclick="window.saveGame()">Zapisz</button>
-                    <button class="btn" style="background:#822; color:#fff;" onclick="window.closeAllOverlays()">Zamknij</button>
+                    <button id="btn-open-crafting" class="btn" style="background:#555; color:#fff;">Kowal</button>
+                    <button id="btn-save-game" class="btn" style="background:#262; color:#fff;">Zapisz</button>
+                    <button id="btn-close-inv" class="btn" style="background:#822; color:#fff;">Zamknij</button>
                 </div>
             </div>
         </div>
@@ -85,7 +73,7 @@
             <div class="panel-box" style="background:#c6c6c6; color:#000; max-width:600px;">
                 <h2 style="color:#333; border-bottom:2px solid #555;">KOWALSTWO</h2>
                 <div id="craft-container" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:left; max-height:400px; overflow-y:auto;"></div>
-                <button class="btn" style="background:#555; color:#fff; margin-top:20px;" onclick="window.closeAllOverlays(); window.openOverlay('inventory-overlay');">Wróć do Plecaka</button>
+                <button id="btn-close-crafting" class="btn" style="background:#555; color:#fff; margin-top:20px;">Wróć</button>
             </div>
         </div>
 
@@ -103,10 +91,10 @@
                 </div>
                 <div id="enemy-sprite">👹</div>
                 <div class="combat-actions">
-                    <button class="btn" onclick="window.combatAction('Zwykly')">Atak</button>
-                    <button class="btn red" onclick="window.combatAction('Silny')">Mocny Cios</button>
-                    <button class="btn green" onclick="window.combatAction('Mikstura')">Lecz</button>
-                    <button class="btn gold" onclick="window.combatAction('Bomba')">Bomba</button>
+                    <button id="btn-combat-atk" class="btn">Atak (LPM)</button>
+                    <button id="btn-combat-str" class="btn red">Mocny Cios</button>
+                    <button id="btn-combat-heal" class="btn green">Lecz</button>
+                    <button id="btn-combat-bomb" class="btn gold">Bomba</button>
                 </div>
             </div>
         </div>
