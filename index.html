@@ -3,94 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
-    <title>Fantasy Odyssey - Ostateczna Wersja</title>
+    <title>Fantasy Odyssey v13 - Real-Time & Grid Inventory</title>
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <style>
-        /* === STYLE I INTERFEJS === */
-        body { background: #050508; color: #eee; font-family: 'Verdana', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; user-select: none; touch-action: none; }
+        /* === MROCZNY KLIMAT I ANIMACJE === */
+        body { background: #020202; color: #ddd; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; user-select: none; touch-action: none; }
+        #game-wrapper { display: none; gap: 15px; background: radial-gradient(circle, #1a1a20 0%, #050508 100%); padding: 15px; border: 1px solid #334; border-radius: 12px; position: relative; max-width: 100%; max-height: 100%; box-sizing: border-box; box-shadow: 0 0 40px rgba(0,0,0,0.9); }
         
-        #game-wrapper { display: none; gap: 15px; background: #111; padding: 15px; border: 3px solid #334; border-radius: 12px; position: relative; max-width: 100%; max-height: 100%; box-sizing: border-box; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+        .fullscreen-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #151520 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; overflow-y: auto;}
+        .menu-box { background: rgba(10, 10, 15, 0.9); border: 1px solid #445; padding: 30px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); max-width: 450px; width: 100%; }
+        .menu-title { font-size: 32px; color: #daaa00; margin-bottom: 5px; text-shadow: 0 4px 10px rgba(0,0,0,0.8); font-weight: bold; letter-spacing: 2px;}
         
-        /* MENU, LOGOWANIE, WYBÓR KLASY */
-        .fullscreen-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a24 0%, #050508 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; overflow-y: auto;}
-        .menu-box { background: rgba(10, 10, 15, 0.9); border: 2px solid #55a; padding: 30px; border-radius: 15px; box-shadow: 0 0 20px rgba(80, 80, 255, 0.2); max-width: 450px; width: 100%; }
-        .menu-title { font-size: 36px; color: #ffcc00; margin-bottom: 5px; text-shadow: 0 0 15px #ff6600, 0 0 5px #fff; font-weight: bold; text-transform: uppercase; }
-        .menu-subtitle { color: #55ff55; font-size: 14px; margin-bottom: 25px; font-weight: bold; letter-spacing: 1px; }
+        .menu-btn { background: linear-gradient(180deg, #2a2a35 0%, #15151c 100%); color: #ccc; border: 1px solid #556; padding: 12px; font-size: 14px; font-weight: bold; margin: 6px 0; cursor: pointer; border-radius: 6px; transition: all 0.2s ease; width: 100%; text-transform: uppercase; letter-spacing: 1px; }
+        .menu-btn:hover { background: linear-gradient(180deg, #3a3a45 0%, #25252c 100%); color: #fff; border-color: #daaa00; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(218, 170, 0, 0.2); }
         
-        .menu-btn { background: linear-gradient(to bottom, #334, #112); color: #fff; border: 2px solid #55a; padding: 15px; font-size: 16px; font-weight: bold; margin: 8px 0; cursor: pointer; border-radius: 8px; transition: 0.3s; width: 100%; text-transform: uppercase; letter-spacing: 1px; }
-        .menu-btn:hover { background: linear-gradient(to bottom, #446, #224); border-color: #ffcc00; transform: scale(1.03); box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
-        .menu-btn.special { background: linear-gradient(to bottom, #141, #020); border-color: #5f5; }
-        .menu-btn.special:hover { border-color: #fff; box-shadow: 0 0 15px rgba(85, 255, 85, 0.4); }
+        .acc-input, .diff-select { padding: 12px; font-size: 14px; margin: 6px 0; background: #08080a; color: #fff; border: 1px solid #445; width: 100%; box-sizing: border-box; border-radius: 4px; text-align: center; outline: none; }
+        .acc-input:focus { border-color: #daaa00; }
         
-        .acc-input, .diff-select, .mp-input { padding: 12px; font-size: 14px; margin: 8px 0; background: #0a0a10; color: #fff; border: 1px solid #55a; width: 100%; box-sizing: border-box; border-radius: 5px; text-align: center; outline: none; transition: 0.3s; }
-        .acc-input:focus, .mp-input:focus { border-color: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.3); }
-        
-        .checkbox-18 { display: block; margin: 15px 0; font-size: 14px; color: #ff5555; font-weight: bold; padding: 12px; border: 1px solid #ff5555; background: rgba(50, 0, 0, 0.5); border-radius: 5px; cursor: pointer; transition: 0.2s;}
-        .checkbox-18:hover { background: rgba(80, 0, 0, 0.8); }
+        /* 3D WIDOK - DODANE ANIMACJE */
+        .view-container { position: relative; width: 640px; height: 480px; max-width: 100%; overflow: hidden; border-radius: 8px; border: 2px solid #223; box-shadow: inset 0 0 40px rgba(0,0,0,1); background: #000; }
+        canvas#view3d { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease-out; }
+        .head-bob { animation: bob 1s infinite alternate ease-in-out; }
+        @keyframes bob { 0% { transform: translateY(0px) scale(1.02); } 100% { transform: translateY(6px) scale(1.02); } }
+        .damage-flash { animation: flash 0.3s ease-out; }
+        @keyframes flash { 0% { box-shadow: inset 0 0 80px rgba(255,0,0,0.8); } 100% { box-shadow: inset 0 0 20px rgba(0,0,0,1); } }
 
-        .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width:100%; max-width: 600px; margin-top: 20px; }
-        .hero-card { background: linear-gradient(to bottom, #222, #111); border: 2px solid #555; padding: 15px; cursor: pointer; text-align: center; border-radius: 10px; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        .hero-card h3 { margin: 0 0 10px 0; color: #ffcc00; font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 5px;}
-        .hero-card:hover { border-color: #00ffff; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 255, 255, 0.2); }
-        .hero-desc { font-size: 12px; color: #aaa; }
+        canvas#minimap { background: #0a0a0f; border: 1px solid #334; cursor: crosshair; width: 100%; height: auto; max-width: 200px; border-radius: 4px; }
+        
+        /* EKWIPUNEK (GRID) */
+        .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; background: #111; padding: 10px; border-radius: 5px; border: 2px solid #333; margin-top: 10px;}
+        .inv-slot { background: #222; border: 1px solid #444; height: 50px; position: relative; border-radius: 4px; display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer; transition: 0.1s;}
+        .inv-slot:hover { background: #333; border-color: #daaa00; }
+        .inv-count { position: absolute; bottom: 2px; right: 4px; font-size: 11px; color: #fff; font-weight: bold; text-shadow: 1px 1px 0 #000; }
+        
+        #ui-panel { width: 360px; max-width: 100%; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 100%; }
+        .panel { background: rgba(20, 20, 25, 0.95); border: 1px solid #334; padding: 12px; border-radius: 6px; }
+        
+        /* OVERLAYS & WALKA */
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 10, 0.95); display: none; flex-direction: column; z-index: 10; overflow-y: auto; padding: 20px; box-sizing: border-box; backdrop-filter: blur(8px);}
+        
+        .combat-container { display: flex; flex-direction: column; height: 100%; justify-content: space-between; }
+        .combat-top { display: flex; justify-content: space-between; gap: 10px;}
+        .combat-box { background: linear-gradient(180deg, #223, #111); border: 1px solid #556; padding: 15px; border-radius: 8px; width: 48%; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5);}
+        .bar-bg { background: #111; width: 100%; height: 14px; border-radius: 7px; overflow: hidden; border: 1px solid #000; margin-top: 10px;}
+        .bar-fill { height: 100%; background: linear-gradient(90deg, #800, #f22); transition: width 0.2s ease-out; }
+        #enemy-sprite { font-size: 120px; text-align: center; margin: auto; animation: breathe 2s infinite ease-in-out; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.8)); }
+        
+        .char-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .char-box { background: #15151a; border: 1px solid #334; padding: 12px; border-radius: 6px; font-size:12px; color:#ccc;}
+        .char-box h3 { margin: 0 0 10px 0; color: #daaa00; border-bottom: 1px solid #334; padding-bottom: 5px; font-size: 14px;}
+        
+        .craft-items { display: grid; grid-template-columns: 1fr 1fr; gap: 10px;}
+        .craft-item { background: #1a1a22; border: 1px solid #445; padding: 10px; border-radius: 6px; text-align: center; font-size:12px; cursor: pointer; transition: 0.2s;}
+        .craft-item:hover { border-color: #daaa00; background: #252530; }
 
-        /* WIDOK GRY */
-        .view-container { position: relative; width: 600px; height: 480px; max-width: 100%; }
-        canvas#view3d { background: #000; border: 2px solid #555; border-radius: 8px; width: 100%; height: auto; aspect-ratio: 5/4; box-shadow: inset 0 0 20px rgba(0,0,0,1); }
-        canvas#minimap { background: #050505; border: 2px solid #555; cursor: crosshair; width: 100%; height: auto; max-width: 240px; border-radius: 5px; }
+        h2 { margin: 0 0 10px 0; color: #fff; font-size: 16px; text-align: center; letter-spacing: 1px;}
+        .stat { margin: 5px 0; }
+        #log { height: 110px; overflow-y: hidden; font-size: 11px; color: #99a; line-height: 1.5; padding: 8px; background: #0a0a0f; border-radius: 4px; border: 1px solid #223;}
+        .log-new { color: #fff; } .log-dmg { color: #f55; } .log-epic { color: #daaa00; font-weight: bold;} .log-18 { color: #f39; } .log-heal { color: #5f5; }
         
-        #ui-panel { width: 340px; max-width: 100%; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; max-height: 100%; }
-        .panel { background: rgba(20, 20, 25, 0.9); border: 1px solid #445; padding: 12px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        
-        /* STEROWANIE MOBILNE */
-        #mobile-controls { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; justify-items: center; align-items: center;}
-        .dpad-btn { background: linear-gradient(to bottom, #445, #223); color: white; border: 2px solid #667; border-radius: 12px; width: 60px; height: 60px; font-size: 20px; font-weight: bold; box-shadow: 0 4px 0 #111; cursor: pointer; }
-        .dpad-btn:active { background: #556; transform: translateY(4px); box-shadow: 0 0 0 #111; border-color: #ffcc00; }
+        @keyframes breathe { 0% { transform: scale(1) translateY(0); } 50% { transform: scale(1.05) translateY(-10px); } 100% { transform: scale(1) translateY(0); } }
 
-        @media (max-width: 900px) {
-            body { align-items: flex-start; overflow-y: auto;}
-            #game-wrapper { flex-direction: column; padding: 10px; border: none; box-shadow: none; background: transparent; }
-            .view-container { width: 100%; height: auto; }
-            #ui-panel { width: 100%; }
-            #mobile-controls { display: grid; }
-            .hero-grid { grid-template-columns: 1fr; }
-        }
-
-        /* OVERLAYS (Walka, Ekwipunek, Crafting) */
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 15, 0.95); display: none; flex-direction: column; border-radius: 8px; z-index: 10; overflow-y: auto; padding: 15px; box-sizing: border-box; backdrop-filter: blur(5px);}
-        
-        .combat-top { display: flex; justify-content: space-between; padding: 10px; }
-        .combat-box { background: rgba(30, 30, 40, 0.8); border: 2px solid #778; padding: 10px; border-radius: 8px; width: 45%; font-size: 14px; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.5);}
-        .bar-bg { background: #222; width: 100%; height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid #000; margin-top: 8px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);}
-        .bar-fill { height: 100%; background: linear-gradient(to right, #a00, #f33); transition: width 0.3s; }
-        #enemy-sprite { font-size: 90px; text-align: center; margin-top: auto; animation: breathe 1.5s infinite ease-in-out; text-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        .combat-menu { background: rgba(20, 20, 25, 0.9); padding: 15px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; border-top: 2px solid #555; margin-top: auto; border-radius: 10px; }
-        
-        .char-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 5px; }
-        .char-box { background: rgba(25, 25, 35, 0.8); border: 1px solid #5a5a8c; padding: 12px; border-radius: 8px; font-size:13px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);}
-        .char-box h3 { margin: 0 0 8px 0; color: #88ccff; border-bottom: 1px solid #445; padding-bottom: 5px;}
-        .inv-use-btn { background: linear-gradient(to bottom, #556, #334); color: #fff; border: 1px solid #778; padding: 4px 8px; cursor: pointer; border-radius: 4px; font-size: 11px; margin-left: 5px; font-weight: bold;}
-        .inv-use-btn:hover { background: #667; border-color: #fff; }
-        
-        .craft-items { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 10px;}
-        .craft-item { background: rgba(30,30,40,0.8); border: 1px solid #667; padding: 12px; border-radius: 8px; text-align: center; font-size:13px; cursor: pointer; transition: 0.2s;}
-        .craft-item:hover { border-color: #ffcc00; background: rgba(50,50,60,0.9); transform: scale(1.02); }
-        
-        .portal-grid, .perk-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 10px;}
-        .portal-box, .perk-card { background: rgba(10,26,42,0.8); border: 2px solid #0ff; padding: 15px; border-radius: 10px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .perk-card { border-color: #5f5; background: rgba(10,30,10,0.8); }
-        .portal-box:hover { background: rgba(0,85,170,0.8); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,255,255,0.3); } 
-        .perk-card:hover { background: rgba(30,80,30,0.8); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(85,255,85,0.3); }
-        .portal-box h3, .perk-card h3 { color: #0ff; margin: 0 0 10px 0; } .perk-card h3 { color: #fc0; }
-
-        .btn { background: linear-gradient(to bottom, #ddd, #aaa); color: #111; border: 2px solid #555; padding: 10px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; text-transform: uppercase;}
-        .btn:hover { background: #fff; border-color: #000; }
-        h2 { margin: 0 0 8px 0; color: #88ccff; font-size: 15px; text-align: center; border-bottom: 1px solid #445; padding-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;}
-        .stat { margin: 5px 0; font-size: 12px; }
-        #log { height: 100px; overflow-y: hidden; font-size: 11px; color: #bbb; line-height: 1.4; padding: 5px; background: rgba(0,0,0,0.3); border-radius: 5px; border: 1px solid #333;}
-        .log-new { color: #fff; } .log-dmg { color: #ff5555; } .log-epic { color: #ff00ff; font-weight: bold;} .log-18 { color: #ff3399; font-weight: bold;} .log-heal { color: #55ff55; } .log-mp { color: #00ffff; font-weight: bold;}
-        
-        @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+        /* MOBILE CONTROLS */
+        #mobile-controls { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; justify-items: center;}
+        .dpad-btn { background: #2a2a35; color: white; border: 1px solid #556; border-radius: 8px; width: 60px; height: 60px; font-size: 20px; font-weight: bold; cursor: pointer; }
+        .dpad-btn:active { background: #445; border-color: #daaa00; }
+        @media (max-width: 900px) { body { align-items: flex-start; overflow-y: auto;} #game-wrapper { flex-direction: column; padding: 10px; border: none; background: transparent; } .view-container, #ui-panel { width: 100%; height: auto; } #mobile-controls { display: grid; } .craft-items, .char-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -98,208 +76,124 @@
 <div id="login-screen" class="fullscreen-menu">
     <div class="menu-box">
         <div class="menu-title">FANTASY ODYSSEY</div>
-        <div class="menu-subtitle">SYSTEM LOGOWANIA</div>
-        <input type="text" id="acc-username" class="acc-input" placeholder="Twój Login (min. 3 znaki)">
+        <p style="color:#889; font-size:12px; margin-bottom:20px;">Edycja z ekwipunkiem i czasem rzeczywistym</p>
+        <input type="text" id="acc-username" class="acc-input" placeholder="Twój Login">
         <input type="password" id="acc-password" class="acc-input" placeholder="Hasło">
-        <button class="menu-btn special" onclick="loginAccount()">ZALOGUJ SIĘ</button>
+        <button class="menu-btn" style="border-color:#5f5;" onclick="loginAccount()">ZALOGUJ SIĘ</button>
         <button class="menu-btn" onclick="registerAccount()">STWÓRZ KONTO</button>
-        <p style="color:#888; font-size: 11px; margin-top: 15px;">Zapisy gier są przypisane do Twojego konta i przechowywane lokalnie.</p>
+        
+        <div style="margin-top:20px; padding-top:15px; border-top: 1px solid #334;">
+            <p style="color:#778; font-size:11px; margin:0 0 5px 0;">Awaryjne zarządzanie zapisami (Plik JSON):</p>
+            <button class="menu-btn" style="font-size:11px; padding:8px;" onclick="exportSaves()">⬇️ Pobierz plik zapisu na dysk</button>
+            <input type="file" id="import-file" style="display:none;" onchange="importSaves(event)">
+            <button class="menu-btn" style="font-size:11px; padding:8px;" onclick="document.getElementById('import-file').click()">⬆️ Wgraj plik zapisu z dysku</button>
+        </div>
     </div>
 </div>
 
 <div id="main-menu" class="fullscreen-menu" style="display:none;">
     <div class="menu-box" style="max-width: 500px;">
         <div class="menu-title">MENU GŁÓWNE</div>
-        <div style="color:#55ff55; margin-bottom: 15px; font-size: 14px;">Zalogowano jako: <b id="logged-user-name">???</b></div>
+        <div style="color:#5f5; margin-bottom: 15px; font-size: 14px;">Zalogowano jako: <b id="logged-user-name">???</b></div>
         
-        <button class="menu-btn special" onclick="loadGame()">💾 WCZYTAJ ZAPISANĄ GRĘ</button>
+        <button class="menu-btn" style="border-color: #5f5; color:#5f5;" onclick="loadGame()">💾 WCZYTAJ GRĘ</button>
         
-        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid #334; margin: 15px 0;">
-            <h3 style="color:#aaa; font-size:12px; margin:0 0 10px 0; text-transform:uppercase;">Ustawienia Nowej Gry</h3>
+        <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 6px; border: 1px solid #223; margin: 15px 0;">
             <select id="diff-selector" class="diff-select">
-                <option value="1" selected>Trudność: Normalny</option>
-                <option value="2">Trudność: Ciężki (Goniące Potwory)</option>
-                <option value="3">Trudność: HARDCORE (Permadeath)</option>
+                <option value="1" selected>Trudność: Klasyczna (Turowa)</option>
+                <option value="2">Trudność: Czas Rzeczywisty (Potwory gonią same!)</option>
+                <option value="3">Trudność: HARDCORE (Szybkie potwory + Permadeath)</option>
             </select>
-            <label class="checkbox-18"><input type="checkbox" id="mode-18plus"> Aktywuj Tryb 18+ (Rozkosz, Alimenty, Używki)</label>
-            <button class="menu-btn" onclick="openCharSelection('single')" style="border-color:#ffcc00; color:#ffcc00;">NOWA GRA (SINGLEPLAYER)</button>
+            <label style="display:block; margin:10px 0; color:#f55; font-size:12px; text-align:left;"><input type="checkbox" id="mode-18plus"> Tryb 18+ (Rozkosz, Wpadki, Fisstech)</label>
+            <button class="menu-btn" onclick="startGameSingle()" style="border-color:#daaa00;">NOWA GRA (SINGLEPLAYER)</button>
         </div>
 
-        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid #334; margin: 15px 0;">
-            <h3 style="color:#0ff; font-size:12px; margin:0 0 10px 0; text-transform:uppercase;">Kooperacja Sieciowa (P2P)</h3>
-            <button class="menu-btn" style="border-color:#00ffff;" onclick="openCharSelection('host')">ZAŁÓŻ POKÓJ (HOST)</button>
-            <input type="text" id="join-id" class="mp-input" placeholder="Wklej ID pokoju kolegi...">
-            <button class="menu-btn" style="border-color:#55ff55;" onclick="openCharSelection('join')">DOŁĄCZ DO POKOJU</button>
-        </div>
-
-        <button class="menu-btn" style="background: #311; border-color:#f55; color:#f55; font-size: 12px; padding: 10px;" onclick="logoutAccount()">WYLOGUJ SIĘ</button>
-    </div>
-</div>
-
-<div id="char-select" class="fullscreen-menu" style="display:none; z-index:110;">
-    <h2 style="font-size: 26px; color: #ffcc00; text-shadow: 0 0 10px #ff0000; margin-bottom: 20px;">WYBIERZ BOHATERA</h2>
-    <div class="hero-grid">
-        <div class="hero-card" onclick="selectHero('Michał Kutas', 'Wojownik', 150, 15)">
-            <h3>Michał Kutas (Wojownik)</h3>
-            <div class="hero-desc">Potężny czołg. Zaczyna z dużą ilością HP i naturalną odpornością. Idealny na pierwszą linię.</div>
-        </div>
-        <div class="hero-card" onclick="selectHero('Dżon Pinat', 'Mag', 60, 35)">
-            <h3>Dżon Pinat (Mag)</h3>
-            <div class="hero-desc">Władca magii. Zadaje gigantyczne obrażenia, ale jest niezwykle kruchy.</div>
-        </div>
-        <div class="hero-card" onclick="selectHero('Gibki Gibek', 'Łotr', 90, 25)">
-            <h3>Gibki Gibek (Łotr)</h3>
-            <div class="hero-desc">Szybki i zwinny. Balans pomiędzy przeżywalnością a szybkimi atakami krytycznymi.</div>
-        </div>
-        <div class="hero-card" onclick="selectHero('Paskalito Pedalino', 'Łucznik', 80, 30)">
-            <h3>Paskalito (Łucznik)</h3>
-            <div class="hero-desc">Strzelec wyborowy. Uderza mocno z ukrycia. Dobry startowy atak.</div>
-        </div>
-    </div>
-    <button class="menu-btn" style="max-width: 300px; margin-top: 30px;" onclick="document.getElementById('char-select').style.display='none'; document.getElementById('main-menu').style.display='flex';">Powrót do Menu</button>
-</div>
-
-<div id="loading-screen" class="fullscreen-menu" style="display:none; z-index:200;">
-    <div class="menu-box">
-        <h2 style="color:#0ff; font-size:20px;">TWÓJ KOD POKOJU:</h2>
-        <h1 id="mp-room-id" style="color:#fff; background:#000; padding:15px; border-radius:8px; border: 1px solid #0ff; user-select:all; word-break: break-all; font-size: 24px;">GENEROWANIE...</h1>
-        <p style="color:#aaa; font-size: 13px;">Skopiuj ten kod i wyślij znajomemu.<br>Oczekiwanie na dołączenie...</p>
-        <button class="menu-btn" style="border-color:#f55; margin-top:20px;" onclick="location.reload()">Anuluj i Wyjdź</button>
+        <button class="menu-btn" style="background: #311; border-color:#f55; color:#f55;" onclick="logoutAccount()">WYLOGUJ SIĘ</button>
     </div>
 </div>
 
 <div id="game-wrapper">
     <div class="view-container">
-        <canvas id="view3d" width="600" height="480"></canvas>
+        <canvas id="view3d" width="640" height="480" class="head-bob"></canvas>
         
-        <div id="portal-screen" class="overlay">
-            <h2 style="font-size:24px; color:#0ff; text-align:center; margin-top:20px;">🌌 PORTAL MIĘDZYWYMIAROWY</h2>
-            <p style="text-align:center; color:#aaa; font-size:12px;">Wybierz świat, do którego chcesz skoczyć. Poziom trudności wzrośnie!</p>
-            <div class="portal-grid">
-                <div class="portal-box" onclick="travelToWorld('human')"><h3>Ludzkie Królestwa</h3>Tradycyjne lasy i mroczne lochy.</div>
-                <div class="portal-box" onclick="travelToWorld('elf')"><h3>Świat Elfów</h3>Kryształowe lasy i wysoka magia.</div>
-                <div class="portal-box" onclick="travelToWorld('dwarf')"><h3>Krasnoludy</h3>Kuźnie magmy i kopalnie złota.</div>
-                <div class="portal-box" onclick="travelToWorld('homunculus')"><h3>Homunkulusy</h3>Siedlisko zmutowanych bestii.</div>
-            </div>
-            <button class="btn" style="margin:20px; align-self:center; width:200px;" onclick="closeOverlay('portal-screen')">Zostań tutaj</button>
-        </div>
-
-        <div id="perk-screen" class="overlay">
-            <h2 style="font-size:26px; color:#5f5; text-align:center; margin-top:20px; text-shadow: 0 0 10px #0f0;">✨ AWANS POZIOMU!</h2>
-            <p style="text-align:center; color:#ddd;">Wybierz jedną z wylosowanych umiejętności:</p>
-            <div class="perk-cards" id="perk-container"></div>
-        </div>
-
         <div id="combat-screen" class="overlay">
-            <div class="combat-top">
-                <div class="combat-box">
-                    <h3 id="c-enemy-name" style="margin:0; color:#fc0; border-bottom:1px solid #555; padding-bottom:5px;">Potwór</h3>
-                    <div class="bar-bg"><div class="bar-fill" id="c-enemy-hp-bar"></div></div>
+            <div class="combat-container">
+                <div class="combat-top">
+                    <div class="combat-box">
+                        <h3 id="c-enemy-name" style="margin:0; color:#daaa00;">Potwór</h3>
+                        <div class="bar-bg"><div class="bar-fill" id="c-enemy-hp-bar"></div></div>
+                    </div>
+                    <div class="combat-box">
+                        <h3 style="margin:0; color:#5f5;">Ty (HP: <span id="c-player-hp-text"></span>)</h3>
+                        <div class="bar-bg"><div class="bar-fill" id="c-player-hp-bar" style="background: #0a0;"></div></div>
+                    </div>
                 </div>
-                <div class="combat-box">
-                    <h3 style="margin:0; color:#5f5; border-bottom:1px solid #555; padding-bottom:5px;">Ty (HP: <span id="c-player-hp-text"></span>)</h3>
-                    <div class="bar-bg"><div class="bar-fill" id="c-player-hp-bar" style="background: linear-gradient(to right, #0a0, #5f5);"></div></div>
+                <div id="enemy-sprite">👹</div>
+                <div class="combat-top" style="gap:5px; flex-wrap:wrap; justify-content:center;">
+                    <button class="menu-btn" style="width:30%; font-size:12px; padding:10px;" onclick="combatAction('Zwykly')">ATAK ⚔️</button>
+                    <button class="menu-btn" style="width:30%; font-size:12px; padding:10px; border-color:#f55;" onclick="combatAction('Silny')">MOCNY 💥</button>
+                    <button class="menu-btn" style="width:30%; font-size:12px; padding:10px; border-color:#0ff;" onclick="combatAction('Mikstura')">LECZ 🧪</button>
+                    <button class="menu-btn" style="width:45%; font-size:12px; padding:10px; border-color:#daaa00;" onclick="combatAction('Bomba')">BOMBA 💣</button>
+                    <button class="menu-btn" style="width:45%; font-size:12px; padding:10px;" onclick="combatAction('Ucieczka')">UCIECZKA 🏃</button>
                 </div>
-            </div>
-            <div id="enemy-sprite">👹</div>
-            <div class="combat-menu">
-                <button class="btn" style="background:#ddd;" onclick="combatAction('Zwykly')">Atak ⚔️</button>
-                <button class="btn" style="background:#fcc;" onclick="combatAction('Silny')">Mocny 💥</button>
-                <button class="btn" style="background:#555; color:#fff;" onclick="combatAction('Bomba')">Bomba 💣</button>
-                <button class="btn" style="background:#cfc;" onclick="combatAction('Mikstura')">Lecz 🧪</button>
-                <button class="btn" style="background:#668; color:#fff; grid-column:span 2;" onclick="combatAction('Ucieczka')">Ucieczka 🏃</button>
             </div>
         </div>
 
         <div id="character-screen" class="overlay">
-            <h2>📜 PROFIL BOHATERA</h2>
+            <h2 style="color:#5f5;">📜 PROFIL I PLECAK</h2>
             <div class="char-grid">
                 <div class="char-box">
                     <h3>Statystyki</h3>
-                    <div class="stat">Klasa: <b id="ch-class" style="color:#fff;"></b> (Lvl <b id="ch-lvl" style="color:#0ff;">1</b>)</div>
-                    <div class="stat">Monety: <b id="ch-coins" style="color:#fc0;">0</b> 🪙</div>
-                    <div class="stat">Zdrowie: <b id="ch-hp">100 / 100</b> ❤️</div>
-                    <div class="stat">Atak: <b id="ch-dmg" style="color:#f55;">5</b> | Pancerz: <b id="ch-def" style="color:#aaa;">0</b> 🛡️</div>
-                    <button class="btn" id="ch-btn-lvlup" style="background:#fc0; width:100%; margin-top:8px; font-size:11px;" onclick="levelUp()">AWANSUJ (<span id="ch-cost">20</span>🪙)</button>
+                    <div class="stat">Poziom: <b id="ch-lvl" style="color:#0ff;">1</b></div>
+                    <div class="stat">Monety: <b id="ch-coins" style="color:#daaa00;">0</b> 🪙</div>
+                    <div class="stat">HP: <b id="ch-hp">100/100</b></div>
+                    <div class="stat">Atak: <b id="ch-dmg" style="color:#f55;">5</b> | Pancerz: <b id="ch-def">0</b></div>
+                    <button class="menu-btn" style="border-color:#daaa00; margin-top:5px; padding:8px;" onclick="levelUp()">AWANSUJ (<span id="ch-cost">20</span>🪙)</button>
                 </div>
-                
-                <div class="char-box" id="companion-box" style="border-color:#f0f; background: rgba(40,10,40,0.8);">
-                    <h3 style="color:#f5f;">Rodzina / Towarzysz</h3>
-                    <div id="comp-content">Brak towarzyszy.</div>
-                </div>
-
                 <div class="char-box">
-                    <h3>Ekwipunek i Perki</h3>
-                    <div class="stat">Broń: <b id="ch-wep" style="color:#fff;">Pięści</b></div>
-                    <div class="stat">Zbroja: <b id="ch-arm" style="color:#fff;">Szmaty</b></div>
-                    <div class="stat" style="color:#5f5; font-size:11px; margin-top:5px; border-top:1px solid #444; padding-top:5px;">Perki: <span id="ch-perks-list">Brak</span></div>
-                </div>
-                
-                <div class="char-box">
-                    <h3>Plecak (Użyj)</h3>
-                    <div class="stat">Mikstury 🧪: <b id="ch-pots">0</b> <button class="inv-use-btn" onclick="useItem('pot')">Lecz</button></div>
-                    <div class="stat">Bomby 💣: <b id="ch-bombs">0</b></div>
-                    <div class="stat">Klucze 🔑: <b id="ch-keys">0</b></div>
-                    <div class="stat">Zwoje 📜: <b id="ch-teles">0</b></div>
-                    <div id="18-items-div" style="display:none; margin-top:5px; border-top:1px solid #444; padding-top:5px;">
-                        <div class="stat" style="color:#fc0;">Wódka 🍺: <b id="ch-vodka">0</b> <button class="inv-use-btn" onclick="useItem('vodka')">Pij</button></div>
-                        <div class="stat" style="color:#f5f;">Fisstech 💊: <b id="ch-drugs">0</b> <button class="inv-use-btn" onclick="useItem('drug')">Zażyj</button></div>
-                        <div class="stat" style="color:#f39;">Jajniki 🥚: <b id="ch-ovaries">0</b> <button class="inv-use-btn" onclick="useItem('ovaries')">Zjedz</button></div>
-                    </div>
-                </div>
-
-                <div class="char-box">
-                    <h3>Surowce Craftingowe</h3>
-                    <div class="stat">Drewno 🪵: <b id="ch-wood">0</b></div>
-                    <div class="stat">Stal ⛓️: <b id="ch-steel">0</b></div>
-                    <div class="stat">Ogień 🔥: <b id="ch-fire">0</b></div>
-                    <div class="stat">Magia ✨: <b id="ch-magic">0</b></div>
-                </div>
-                
-                <div class="char-box">
-                    <h3>Aktywne Efekty</h3>
-                    <div id="ch-effects" class="eff-list">Brak aktywnych efektów.</div>
+                    <h3>Ubrany Sprzęt</h3>
+                    <div class="stat" style="color:#aaa;">Broń: <b id="ch-wep" style="color:#fff;">Pięści</b></div>
+                    <div class="stat" style="color:#aaa;">Zbroja: <b id="ch-arm" style="color:#fff;">Szmaty</b></div>
+                    <div class="stat" style="color:#aaa;">Pas: <b id="ch-belt" style="color:#0ff;">Brak (Limit Stacka: 5)</b></div>
+                    <div class="stat" style="color:#5f5; font-size:10px; margin-top:5px;">Perki: <span id="ch-perks-list">Brak</span></div>
                 </div>
             </div>
-            <button class="btn" style="margin: 10px auto; width: 200px;" onclick="closeOverlay('character-screen')">Zamknij Profil</button>
+            
+            <h3 style="color:#daaa00; margin: 15px 0 0 0; text-align:center;">PLECAK (Kliknij by użyć)</h3>
+            <div class="inv-grid" id="inventory-grid">
+                </div>
+            <button class="menu-btn" style="margin-top:15px;" onclick="closeOverlay('character-screen')">ZAMKNIJ</button>
         </div>
 
         <div id="crafting-screen" class="overlay">
-            <h2>🔨 KOWALSTWO I ALCHEMIA</h2>
-            <p style="text-align:center; color:#aaa; font-size:12px; margin-top:0;">Zbieraj surowce z mapy i bossów, by tworzyć potężny sprzęt.</p>
+            <h2 style="color:#daaa00;">🔨 KOWALSTWO</h2>
             <div class="craft-items" id="craft-container"></div>
-            <button class="btn" style="margin:15px auto; width: 200px;" onclick="closeOverlay('crafting-screen')">Zamknij Kuźnię</button>
+            <button class="menu-btn" style="margin-top:15px;" onclick="closeOverlay('crafting-screen')">WYJDŹ</button>
         </div>
     </div>
     
     <div id="ui-panel">
         <div class="panel" style="text-align: center;">
-            <h2 id="biome-name" style="color:#fff; font-size:16px;">LOKACJA</h2>
+            <h2 id="biome-name" style="color:#fff;">LOKACJA</h2>
             <canvas id="minimap" width="240" height="240"></canvas>
-            <div id="mp-status" style="font-size: 11px; color:#0ff; margin-top:8px; font-weight:bold; letter-spacing:1px;">TRYB: SINGLEPLAYER</div>
         </div>
 
         <div id="mobile-controls">
-            <div></div> 
-            <button class="dpad-btn" onclick="movePlayer('FORWARD')">W</button>
-            <div></div>
-            <button class="dpad-btn" onclick="movePlayer('LEFT')">A</button>
-            <button class="dpad-btn" onclick="movePlayer('BACK')">S</button>
-            <button class="dpad-btn" onclick="movePlayer('RIGHT')">D</button>
+            <div></div> <button class="dpad-btn" onclick="movePlayer('FORWARD')">W</button> <div></div>
+            <button class="dpad-btn" onclick="movePlayer('LEFT')">A</button> <button class="dpad-btn" onclick="movePlayer('BACK')">S</button> <button class="dpad-btn" onclick="movePlayer('RIGHT')">D</button>
         </div>
         
         <div class="panel">
-            <div class="stat" style="font-size:13px;">Konto: <b id="ui-accname" style="color:#fc0;">-</b> | Świat: <b id="ui-worldname" style="color:#5f5;">-</b></div>
-            <div class="stat" style="font-size:13px;">Piętro: <b id="ui-dlvl" style="color:#fff;">1</b> | HP: <b id="ui-hp" style="color:#f55;">100</b>/<b id="ui-maxhp">100</b> ❤️</div>
-            <div style="display:flex; gap:8px; margin-top:10px;">
-                <button class="btn" style="flex:1; background:linear-gradient(to bottom, #5f5, #2a2); color:#000; font-size:11px;" onclick="openOverlay('character-screen')">PROFIL</button>
-                <button class="btn" style="flex:1; background:linear-gradient(to bottom, #fc0, #a80); color:#000; font-size:11px;" onclick="openCrafting()">KOWAL</button>
-                <button class="btn" style="flex:1; background:linear-gradient(to bottom, #4af, #15a); color:#fff; font-size:11px;" onclick="saveGame()">ZAPISZ</button>
+            <div class="stat">Świat: <b id="ui-worldname" style="color:#5f5;">-</b></div>
+            <div class="stat">Piętro: <b id="ui-dlvl">1</b> | HP: <b id="ui-hp" style="color:#f55;">100</b></div>
+            <div style="display:flex; gap:5px; margin-top:10px;">
+                <button class="menu-btn" style="flex:1; border-color:#5f5; padding:8px; font-size:11px;" onclick="openCharacterMenu()">PLECAK</button>
+                <button class="menu-btn" style="flex:1; border-color:#daaa00; padding:8px; font-size:11px;" onclick="openCrafting()">KOWAL</button>
+                <button class="menu-btn" style="flex:1; border-color:#0af; padding:8px; font-size:11px;" onclick="saveGame()">ZAPISZ</button>
             </div>
         </div>
         
         <div class="panel" style="flex-grow: 1;">
-            <h2>🔔 DZIENNIK ZDARZEŃ</h2>
             <div id="log"></div>
         </div>
     </div>
@@ -307,22 +201,22 @@
 
 <script>
     // ==========================================
-    // 1. SYSTEM KONT (LOCAL STORAGE)
+    // 1. ZARZĄDZANIE KONTAMI I ZAPISEM (JSON)
     // ==========================================
     let currentUser = null;
+    const STORAGE_KEY = 'fo_accounts_v13';
 
-    function getAccounts() { return JSON.parse(localStorage.getItem('fo_accounts_v13')) || {}; }
-    function saveAccounts(accs) { localStorage.setItem('fo_accounts_v13', JSON.stringify(accs)); }
+    function getAccounts() { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+    function saveAccounts(accs) { localStorage.setItem(STORAGE_KEY, JSON.stringify(accs)); }
 
     function registerAccount() {
         let u = document.getElementById('acc-username').value.trim();
         let p = document.getElementById('acc-password').value.trim();
-        if(u.length < 3 || p.length < 3) { alert("Login i Hasło muszą mieć minimum 3 znaki!"); return; }
+        if(u.length < 3 || p.length < 3) { alert("Login i Hasło min. 3 znaki!"); return; }
         let accs = getAccounts();
-        if(accs[u]) { alert("Konto o takiej nazwie już istnieje!"); return; }
+        if(accs[u]) { alert("Konto już istnieje!"); return; }
         accs[u] = { password: p, saveGame: null };
-        saveAccounts(accs);
-        alert("Konto zostało pomyślnie utworzone! Możesz się teraz zalogować.");
+        saveAccounts(accs); alert("Utworzono konto!");
     }
 
     function loginAccount() {
@@ -331,268 +225,233 @@
         let accs = getAccounts();
         if(accs[u] && accs[u].password === p) {
             currentUser = u;
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-menu').style.display = 'flex';
+            document.getElementById('login-screen').style.display = 'none'; document.getElementById('main-menu').style.display = 'flex';
             document.getElementById('logged-user-name').innerText = currentUser;
-            document.getElementById('ui-accname').innerText = currentUser;
         } else { alert("Błędny login lub hasło!"); }
     }
 
     function logoutAccount() {
-        currentUser = null;
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('acc-username').value = ''; 
-        document.getElementById('acc-password').value = '';
+        clearInterval(monsterInterval); // Zatrzymanie potworów
+        currentUser = null; document.getElementById('main-menu').style.display = 'none'; document.getElementById('login-screen').style.display = 'flex';
     }
 
     function saveGame() {
-        if(!currentUser) { alert("Błąd: Niezalogowany!"); return; }
-        if(isMultiplayer) { alert("Zapisywanie jest dostępne tylko w trybie Singleplayer!"); return; }
-        const gameState = {
-            player, MATS, map, entities, currentLevel, selectedWorld, 
-            currentBiomeIndex, difficulty, diffMult, is18Plus, logs
-        };
-        let accs = getAccounts();
-        accs[currentUser].saveGame = gameState;
-        saveAccounts(accs);
-        logMsg(`💾 Gra została pomyślnie zapisana!`, "log-epic");
+        if(!currentUser) return;
+        const gameState = { player, map, entities, currentLevel, selectedWorld, currentBiomeIndex, difficulty, diffMult, is18Plus, logs };
+        let accs = getAccounts(); accs[currentUser].saveGame = gameState; saveAccounts(accs);
+        logMsg(`💾 Gra zapisana!`, "log-epic");
     }
 
     function loadGame() {
         if(!currentUser) return;
-        let accs = getAccounts();
-        let savedData = accs[currentUser].saveGame;
-        if(!savedData) { alert(`Brak zapisanego stanu gry na koncie ${currentUser}!`); return; }
+        let accs = getAccounts(); let s = accs[currentUser].saveGame;
+        if(!s) { alert(`Brak zapisu!`); return; }
         
-        try {
-            player = savedData.player; MATS = savedData.MATS; map = savedData.map; entities = savedData.entities;
-            currentLevel = savedData.currentLevel; selectedWorld = savedData.selectedWorld; currentBiomeIndex = savedData.currentBiomeIndex;
-            difficulty = savedData.difficulty; diffMult = savedData.diffMult; is18Plus = savedData.is18Plus; logs = savedData.logs || [];
-            
-            document.getElementById('main-menu').style.display = 'none'; 
-            document.getElementById('game-wrapper').style.display = 'flex';
-            document.getElementById('ui-worldname').innerText = WORLDS[selectedWorld].title;
-            document.getElementById('biome-name').innerText = WORLDS[selectedWorld].biomes[currentBiomeIndex].name;
-            if(is18Plus) document.getElementById('18-items-div').style.display = 'block';
-            
-            isMultiplayer = false;
-            document.getElementById('mp-status').innerText = "TRYB: SINGLEPLAYER";
-            logMsg(`💾 Pomyślnie wczytano stan gry.`, "log-epic");
-            updateAll();
-        } catch (e) { alert("Wystąpił błąd podczas wczytywania pliku zapisu!"); console.error(e); }
+        player = s.player; map = s.map; entities = s.entities; currentLevel = s.currentLevel; selectedWorld = s.selectedWorld; 
+        currentBiomeIndex = s.currentBiomeIndex; difficulty = s.difficulty; diffMult = s.diffMult; is18Plus = s.is18Plus; logs = s.logs || [];
+        
+        startEngine();
+        logMsg(`💾 Wczytano grę.`, "log-epic");
+    }
+
+    // Eksport/Import do Pliku
+    function exportSaves() {
+        let data = localStorage.getItem(STORAGE_KEY);
+        if(!data) { alert("Brak danych do eksportu."); return; }
+        let blob = new Blob([data], {type: "application/json"});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a'); a.href = url; a.download = "fantasy_odyssey_save.json"; a.click();
+    }
+    function importSaves(e) {
+        let file = e.target.files[0];
+        if(!file) return;
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            try { JSON.parse(e.target.result); localStorage.setItem(STORAGE_KEY, e.target.result); alert("Zapisy wgrane pomyślnie! Zaloguj się."); } 
+            catch(err) { alert("Błędny plik zapisu!"); }
+        };
+        reader.readAsText(file);
     }
 
     // ==========================================
-    // 2. BAZA DANYCH (Itemy, Światy, Perki)
+    // 2. NOWY EKWIPUNEK I BAZY DANYCH
     // ==========================================
-    let MATS = { wood: 0, steel: 0, magic: 0, fire: 0 };
+    const INV_SIZE = 20; // 4x5 grid
     
-    const WEAPONS = [
-        {name: "Pięści", dmg: 0, rar: 1}, {name: "Skarpety na ręce", dmg: 1, rar: 1}, {name: "Sztylet", dmg: 3, rar: 1}, 
-        {name: "Drewniana Pałka", dmg: 5, rar: 1}, {name: "Krótki Miecz", dmg: 8, rar: 1}, {name: "Stalowy Miecz", dmg: 12, rar: 2}, 
-        {name: "Włócznia", dmg: 16, rar: 2}, {name: "Morgenstern", dmg: 20, rar: 2}, {name: "Elficki Łuk", dmg: 25, rar: 3}, 
-        {name: "Zatrute Ostrze", dmg: 28, rar: 3}, {name: "Ognisty Miecz", dmg: 35, rar: 3}, {name: "Krasnoludzki Topór", dmg: 45, rar: 4}, 
-        {name: "Szabla", dmg: 55, rar: 4}, {name: "Kosa Krwi", dmg: 65, rar: 4}, {name: "Kij ArcyMaga", dmg: 75, rar: 4}, 
-        {name: "Bicz Demonów", dmg: 90, rar: 4}, {name: "Trójząb", dmg: 110, rar: 4}, {name: "Młot Tytanów", dmg: 130, rar: 4}, 
-        {name: "Miecz Króla", dmg: 160, rar: 4}, {name: "Ostrze Nieskończoności", dmg: 200, rar: 4}
-    ];
-    
-    const ARMORS = [
-        {name: "Szmaty", def: 0, rar: 1}, {name: "Skórzana Kurta", def: 3, rar: 1}, {name: "Drewniana Tarcza", def: 5, rar: 1}, 
-        {name: "Kolczuga", def: 8, rar: 2}, {name: "Żelazny Pancerz", def: 12, rar: 2}, {name: "Zbroja Strażnika", def: 15, rar: 2}, 
-        {name: "Szata Maga", def: 18, rar: 3}, {name: "Stalowa Płyta", def: 22, rar: 3}, {name: "Szata Elfów", def: 26, rar: 3}, 
-        {name: "Kościany Pancerz", def: 30, rar: 3}, {name: "Pancerz Golema", def: 35, rar: 4}, {name: "Zbroja Piekielna", def: 42, rar: 4}, 
-        {name: "Łuski Smoka", def: 50, rar: 4}, {name: "Płaszcz Cienia", def: 60, rar: 4}, {name: "Mithrilowa Zbroja", def: 75, rar: 4}, 
-        {name: "Złoty Pancerz", def: 90, rar: 4}, {name: "Szata Nekromanty", def: 110, rar: 4}, {name: "Pancerz Paladyna", def: 135, rar: 4}, 
-        {name: "Obsydianowa Tarcza", def: 160, rar: 4}, {name: "Aura Niewidzialności", def: 200, rar: 4}
-    ];
-    
+    // Słownik przedmiotów (dla ikon i działania)
+    const ITEM_DB = {
+        'wood': { symbol: '🪵', name: 'Drewno', type: 'mat' },
+        'steel': { symbol: '⛓️', name: 'Stal', type: 'mat' },
+        'fire': { symbol: '🔥', name: 'Ogień', type: 'mat' },
+        'magic': { symbol: '✨', name: 'Magia', type: 'mat' },
+        'pot': { symbol: '🧪', name: 'Mikstura', type: 'use', action: (p)=>{ p.hp=Math.min(p.maxHp, p.hp+50); logMsg("Leczysz 50 HP.","log-heal"); } },
+        'bomb': { symbol: '💣', name: 'Bomba', type: 'combat_only' },
+        'key': { symbol: '🔑', name: 'Klucz', type: 'key' },
+        'vodka': { symbol: '🍺', name: 'Wódka', type: 'use', action: (p)=>{ p.hp=Math.min(p.maxHp, p.hp+100); addEffect('Pijany','debuff',0,4,0); logMsg("Pijesz Wódkę!","log-18"); } },
+        'drug': { symbol: '💊', name: 'Fisstech', type: 'use', action: (p)=>{ addEffect('Haj','buff',0,5,20); logMsg("Zażywasz Fisstech!","log-18"); } }
+    };
+
+    const WEAPONS = [ {name: "Pięści", dmg: 0}, {name: "Sztylet", dmg: 5}, {name: "Miecz", dmg: 15}, {name: "Topór", dmg: 35}, {name: "Ostrze Zagłady", dmg: 100} ];
+    const ARMORS = [ {name: "Szmaty", def: 0}, {name: "Skóra", def: 5}, {name: "Żelazo", def: 15}, {name: "Mithril", def: 40} ];
+    const BELTS = [ {name: "Brak", cap: 5}, {name: "Skórzany Pas", cap: 15}, {name: "Pas Tytanów", cap: 50} ];
+
     const RECIPES = [
-        {name: "Skarpety na ręce (Tajna broń)", req: {wood: 1}, type: 'wep', item: WEAPONS[1]},
-        {name: "Stalowy Miecz (+12 Atak)", req: {steel: 3, wood: 1}, type: 'wep', item: WEAPONS[5]},
-        {name: "Ognisty Miecz (+35 Atak)", req: {steel: 5, fire: 3}, type: 'wep', item: WEAPONS[10]},
-        {name: "Krasnoludzki Topór (+45 Atak)", req: {steel: 10, fire: 5}, type: 'wep', item: WEAPONS[11]},
-        {name: "Młot Tytanów (+130 Atak)", req: {steel: 20, fire: 10, magic: 5}, type: 'wep', item: WEAPONS[17]},
-        {name: "Ostrze Nieskończoności (+200)", req: {steel: 50, fire: 20, magic: 20}, type: 'wep', item: WEAPONS[19]},
-        {name: "Żelazny Pancerz (+12 Def)", req: {steel: 5}, type: 'arm', item: ARMORS[4]},
-        {name: "Zbroja Maga (+18 Def)", req: {magic: 4, wood: 2}, type: 'arm', item: ARMORS[6]},
-        {name: "Pancerz Golema (+35 Def)", req: {steel: 8, fire: 4}, type: 'arm', item: ARMORS[10]},
-        {name: "Mithrilowa Zbroja (+75 Def)", req: {steel: 15, magic: 10}, type: 'arm', item: ARMORS[14]},
-        {name: "Aura Niewidzialności (+200 Def)", req: {magic: 30, fire: 10}, type: 'arm', item: ARMORS[19]},
-        {name: "Mikstura Leczenia", req: {magic: 1, wood: 1}, type: 'use', action: (p)=>{p.inv.pots++; logMsg("Uwarzono Miksturę!");}},
-        {name: "Bomba Obszarowa", req: {fire: 2, steel: 1}, type: 'use', action: (p)=>{p.inv.bombs++; logMsg("Skonstruowano Bombę!");}},
-        {name: "Klucz do Skarbca", req: {steel: 2}, type: 'use', action: (p)=>{p.keys++; logMsg("Wykuto Klucz!");}},
-        {name: "Zwój Teleportacji", req: {magic: 3}, type: 'use', action: (p)=>{p.inv.teles++; logMsg("Stworzono Zwój Teleportacji!");}},
-        {name: "Magiczna Tarcza (Buff w walce)", req: {magic: 5}, type: 'use', action: (p)=>{addEffect('Tarcza Światła', 'buff', null, 0, 50); logMsg("Aktywowano Tarczę Światła (+20 Obrony)");}},
-        {name: "Olej na Miecz (Buff w walce)", req: {fire: 5, wood: 2}, type: 'use', action: (p)=>{addEffect('Płonące Ostrze', 'buff', null, 0, 50); logMsg("Płonące Ostrze aktywne (+20 Ataku)");}},
-        {name: "Eliksir Nowego Życia", req: {magic: 10, ovaries: 1}, type: 'use', action: (p)=>{p.levelCost = 20; logMsg("NIESAMOWITE! Zresetowano koszt awansu do 20 monet!", "log-epic");}},
-        {name: "Złoto Alchemika", req: {magic: 2, steel: 2}, type: 'use', action: (p)=>{p.coins+=100; logMsg("Przekuto stal w Złoto (+100 Monet)");}},
-        {name: "Fisstech (Czysty)", req: {magic: 5, wood: 5}, type: 'use', action: (p)=>{p.inv.drugs++; logMsg("Uwarzono twardy narkotyk...");}}
+        {name: "Skórzany Pas (Stack x15)", req: {wood: 5}, action: (p)=>{ p.belt = BELTS[1]; logMsg("Wykonano Skórzany Pas!"); }},
+        {name: "Miecz (+15 Dmg)", req: {steel: 3, wood: 1}, action: (p)=>{ p.weapon = WEAPONS[2]; logMsg("Wykuto Miecz!"); }},
+        {name: "Topór (+35 Dmg)", req: {steel: 10, fire: 5}, action: (p)=>{ p.weapon = WEAPONS[3]; logMsg("Wykuto Topór!"); }},
+        {name: "Ostrze Zagłady (+100 Dmg)", req: {steel: 30, magic: 20, fire: 20}, action: (p)=>{ p.weapon = WEAPONS[4]; logMsg("Wykuto Legendę!"); }},
+        {name: "Żelazna Zbroja (+15 Def)", req: {steel: 8}, action: (p)=>{ p.armor = ARMORS[2]; }},
+        {name: "Mithrilowa Zbroja (+40 Def)", req: {steel: 20, magic: 15}, action: (p)=>{ p.armor = ARMORS[3]; }},
+        {name: "Mikstura Leczenia", req: {magic: 1, wood: 1}, action: (p)=>{ addToInventory('pot', 1); logMsg("Uwarzono Miksturę!"); }},
+        {name: "Bomba", req: {fire: 2, steel: 1}, action: (p)=>{ addToInventory('bomb', 1); logMsg("Zbudowano Bombę!"); }}
     ];
 
     const WORLDS = {
-        human: { title: "Ludzkie Królestwa", biomes: [ {name: "🌲 MROCZNY LAS", wall: '#1b3311', floor: '#0f1f09', door: '#4a2f1d', exitText: "SCHODY"}, {name: "🧱 ZAPOMNIANE LOCHY", wall: '#2a2a35', floor: '#1a1a22', door: '#3a2218', exitText: "WROTA"}, {name: "🏰 ZAMEK KRÓLA", wall: '#4a1111', floor: '#2a0a0a', door: '#ffd700', exitText: "LOCHY"} ], mobs: [ {n: "Zły Wilk", s: "🐺", hp: 30, d: 8}, {n: "Goblin", s: "👺", hp: 40, d: 12}, {n: "Bandyta", s: "🥷", hp: 60, d: 15}, {n: "Demon", s: "👿", hp: 120, d: 30} ] },
-        elf: { title: "Świat Elfów", biomes: [ {name: "✨ KRYSZTAŁOWY LAS", wall: '#113333', floor: '#0a1a1a', door: '#338888', exitText: "MOST"}, {name: "🏯 ZŁOTE MIASTO", wall: '#4a4a11', floor: '#2a2a0a', door: '#ffffaa', exitText: "BRAMA"} ], mobs: [ {n: "Strażnik Lasu", s: "🧝", hp: 45, d: 10}, {n: "Wróżka", s: "🧚", hp: 25, d: 15}, {n: "Golem Światła", s: "🧿", hp: 90, d: 20}, {n: "Elficki Mag", s: "🧙", hp: 70, d: 25} ] },
-        dwarf: { title: "Podziemia Krasnoludów", biomes: [ {name: "⛏️ KOPALNIA ZŁOTA", wall: '#332211', floor: '#1a110a', door: '#aa7733', exitText: "SZYB"}, {name: "🌋 KUŹNIA MAGMY", wall: '#441100', floor: '#220800', door: '#ff5500', exitText: "WROTA"} ], mobs: [ {n: "Krasnolud", s: "🧔", hp: 60, d: 12}, {n: "Ognisty Nietoperz", s: "🦇", hp: 35, d: 18}, {n: "Żelazny Golem", s: "🗿", hp: 150, d: 25}, {n: "Żywiołak Magmy", s: "🔥", hp: 100, d: 35} ] },
-        homunculus: { title: "Przeklęte Laboratoria", biomes: [ {name: "🧪 LABORATORIUM", wall: '#1a3a2a', floor: '#0a1a1a', door: '#33ff88', exitText: "ŚLUZA"}, {name: "☣️ KANAŁY MUTANTÓW", wall: '#2a3a1a', floor: '#1a2a0a', door: '#445522', exitText: "RURA"} ], mobs: [ {n: "Zmutowany Szczur", s: "🐀", hp: 35, d: 15}, {n: "Pełzacz", s: "🐛", hp: 50, d: 18}, {n: "Alchemik", s: "🧟", hp: 80, d: 25}, {n: "Homunkulus", s: "👁️", hp: 160, d: 40} ] }
+        human: { title: "Ludzkie Królestwa", biomes: [ {name: "MROCZNY LAS", wall: '#1b3311', floor: '#0f1f09'}, {name: "ZAPOMNIANE LOCHY", wall: '#2a2a35', floor: '#1a1a22'} ], mobs: [ {n: "Wilk", s: "🐺", hp: 30, d: 8}, {n: "Goblin", s: "👺", hp: 40, d: 12} ] },
+        elf: { title: "Świat Elfów", biomes: [ {name: "KRYSZTAŁOWY LAS", wall: '#113333', floor: '#0a1a1a'} ], mobs: [ {n: "Strażnik", s: "🧝", hp: 45, d: 10}, {n: "Golem", s: "🧿", hp: 90, d: 20} ] }
     };
 
-    const PERKS = [
-        {id: 'brute', name: 'Siłacz', desc: '+15 Ataku na stałe.', onTake: (p) => p.baseDmg += 15},
-        {id: 'tank', name: 'Twardoskóry', desc: '+10 Pancerza na stałe.', onTake: (p) => p.baseArmor += 10},
-        {id: 'vitality', name: 'Witalność', desc: '+50 Max HP.', onTake: (p) => { p.maxHp += 50; p.hp += 50; }},
-        {id: 'vampire', name: 'Wampiryzm', desc: 'Leczysz się po pokonaniu wroga.', onTake: (p)=>{}},
-        {id: 'lucky', name: 'Szczęściarz', desc: '+15% Szansy na Krytyk.', onTake: (p)=>{}},
-        {id: 'assassin', name: 'Zabójca', desc: 'Krytyki x3 (zamiast x2).', onTake: (p)=>{}},
-        {id: 'thief', name: 'Złodziej', desc: 'Więcej monet z potworów.', onTake: (p)=>{}},
-        {id: 'alchemist', name: 'Alchemik', desc: 'Mikstury leczą do 100% HP.', onTake: (p)=>{}},
-        {id: 'sapper', name: 'Saper', desc: '+5 Bomb, a bomby są silniejsze.', onTake: (p) => p.inv.bombs += 5},
-        {id: 'runner', name: 'Biegacz', desc: '100% szansy na ucieczkę.', onTake: (p)=>{}},
-        {id: 'regen', name: 'Regeneracja', desc: 'Leczysz 2 HP za każdy krok.', onTake: (p)=>{}},
-        {id: 'berserk', name: 'Berserker', desc: '+50% Dmg, gdy masz <30% HP.', onTake: (p)=>{}},
-        {id: 'healer', name: 'Znachor', desc: 'Pełne leczenie po przejściu piętra.', onTake: (p)=>{}},
-        {id: 'explorer', name: 'Odkrywca', desc: 'Dostajesz od razu 5 Zwojów.', onTake: (p) => p.inv.teles += 5},
-        {id: 'boss_slayer', name: 'Pogromca Bossów', desc: 'Zadajesz 2x więcej obrażeń Bossom.', onTake: (p)=>{}},
-        {id: 'ghost', name: 'Duch', desc: '20% szans, że wróg w ogóle nie trafi.', onTake: (p)=>{}},
-        {id: 'wealthy', name: 'Bogacz', desc: 'Zastrzyk gotówki: +250 monet.', onTake: (p) => p.coins += 250},
-        {id: 'ninja', name: 'Ninja', desc: 'Zwykły atak omija pancerz wroga.', onTake: (p)=>{}},
-        {id: 'pyro', name: 'Piromanta', desc: 'Twoje ataki mają szansę podpalić wroga.', onTake: (p)=>{}},
-        {id: 'toxic', name: 'Toksyczna Krew', desc: 'Wróg raniąc Cię, sam traci 10 HP.', onTake: (p)=>{}}
-    ];
+    let player = {
+        x: 1, y: 1, dir: 1, hp: 100, maxHp: 100, lvl: 1, coins: 0, levelCost: 20, baseDmg: 5, baseArmor: 0,
+        weapon: WEAPONS[0], armor: ARMORS[0], belt: BELTS[0],
+        inventory: [], // Tablica slotów: {id: 'wood', count: 2}
+        effects: [], companion: null, alimony: false, activePerkIds: [], perksList: []
+    };
+
+    // --- LOGIKA EKWIPUNKU MINECRAFTOWEGO ---
+    function getInventoryCount(id) {
+        return player.inventory.filter(i => i && i.id === id).reduce((sum, i) => sum + i.count, 0);
+    }
+
+    function removeInventoryItem(id, amount) {
+        let remaining = amount;
+        for(let i = player.inventory.length - 1; i >= 0; i--) {
+            if(player.inventory[i] && player.inventory[i].id === id) {
+                if(player.inventory[i].count >= remaining) {
+                    player.inventory[i].count -= remaining;
+                    if(player.inventory[i].count === 0) player.inventory[i] = null;
+                    return true;
+                } else {
+                    remaining -= player.inventory[i].count;
+                    player.inventory[i] = null;
+                }
+            }
+        }
+        return false;
+    }
+
+    function addToInventory(id, amount) {
+        let maxStack = player.belt.cap;
+        let remaining = amount;
+        
+        // 1. Szukaj niepełnych stacków
+        for(let i=0; i<INV_SIZE; i++) {
+            if(player.inventory[i] && player.inventory[i].id === id && player.inventory[i].count < maxStack) {
+                let space = maxStack - player.inventory[i].count;
+                if(remaining <= space) { player.inventory[i].count += remaining; return true; }
+                else { player.inventory[i].count = maxStack; remaining -= space; }
+            }
+        }
+        // 2. Szukaj pustych slotów
+        for(let i=0; i<INV_SIZE; i++) {
+            if(!player.inventory[i]) {
+                if(remaining <= maxStack) { player.inventory[i] = {id: id, count: remaining}; return true; }
+                else { player.inventory[i] = {id: id, count: maxStack}; remaining -= maxStack; }
+            }
+        }
+        logMsg("Brak miejsca w plecaku!", "log-dmg");
+        return false; // Wyrzucamy nadmiar w kosmos (brak miejsca)
+    }
+
+    function renderInventory() {
+        let html = '';
+        for(let i=0; i<INV_SIZE; i++) {
+            let item = player.inventory[i];
+            if(item && ITEM_DB[item.id]) {
+                let db = ITEM_DB[item.id];
+                html += `<div class="inv-slot" onclick="clickSlot(${i})" title="${db.name}">${db.symbol}<div class="inv-count">${item.count}</div></div>`;
+            } else {
+                html += `<div class="inv-slot"></div>`;
+            }
+        }
+        document.getElementById('inventory-grid').innerHTML = html;
+    }
+
+    function clickSlot(idx) {
+        let item = player.inventory[idx];
+        if(!item) return;
+        let db = ITEM_DB[item.id];
+        if(db.type === 'use') {
+            db.action(player);
+            item.count--;
+            if(item.count <= 0) player.inventory[idx] = null;
+            updateUI(); renderInventory();
+        } else {
+            logMsg(`To jest ${db.name}. Służy do craftingu.`, "log-new");
+        }
+    }
 
     // ==========================================
-    // 3. SILNIK I ZMIENNE GŁÓWNE
+    // 3. SILNIK I CZAS RZECZYWISTY (REAL-TIME)
     // ==========================================
     const canvas = document.getElementById('view3d'); const ctx = canvas.getContext('2d');
     const minimap = document.getElementById('minimap'); const mCtx = minimap.getContext('2d');
-    const MAP_SIZE = 24; const TILE_SIZE = minimap.width / MAP_SIZE;
-    const T_WALL = 1, T_FLOOR = 0, T_DOOR = 2, T_EXIT = 3, T_PORTAL = 4, T_MEGA_PORTAL = 5;
+    const MAP_SIZE = 24; const T_WALL = 1, T_FLOOR = 0, T_DOOR = 2, T_EXIT = 3;
     const DIRS = [ {dx: 0, dy: -1}, {dx: 1, dy: 0}, {dx: 0, dy: 1}, {dx: -1, dy: 0} ];
     
     let map = [], entities = [], logs = [];
     let state = 'EXPLORE', difficulty = 1, diffMult = 1.0, is18Plus = false;
     let currentLevel = 1, currentBiomeIndex = 0, selectedWorld = 'human';
-    let currentEnemy = null, lastPlayerPos = {x:1, y:1}, savedMainMap = null; 
-    let offeredPerks = [], hookerRevenge = false;
-    
-    let player = {
-        x: 1, y: 1, dir: 1, name: "", class: "", hp: 100, maxHp: 100, lvl: 1,
-        coins: 0, keys: 0, levelCost: 20, baseDmg: 5, baseArmor: 0,
-        weapon: WEAPONS[0], armor: ARMORS[0],
-        inv: { pots: 2, teles: 1, bombs: 1, vodka: 0, drugs: 0, ovaries: 0 },
-        effects: [], companion: null, alimony: false,
-        activePerkIds: [], perksList: []
-    };
+    let currentEnemy = null;
+    let monsterInterval = null;
 
-    let peer = null, conn = null, isMultiplayer = false, isHost = false, otherPlayer = null;
-
-    // Funkcje UI
-    function logMsg(msg, type='log-new') { logs.unshift(`<span class="${type}">• ${msg}</span><br>`); if(logs.length > 7) logs.pop(); document.getElementById('log').innerHTML = logs.join(''); }
-    function openOverlay(id) { state = id; document.getElementById(id).style.display = 'flex'; updateUI(); }
+    function logMsg(msg, type='log-new') { logs.unshift(`<span class="${type}">• ${msg}</span><br>`); if(logs.length > 6) logs.pop(); document.getElementById('log').innerHTML = logs.join(''); }
     function closeOverlay(id) { state = 'EXPLORE'; document.getElementById(id).style.display = 'none'; updateAll(); }
     
-    // ==========================================
-    // 4. INICJALIZACJA GRY I TRYBÓW
-    // ==========================================
-    function openCharSelection(mode) {
-        if(mode === 'join') {
-            let roomId = document.getElementById('join-id').value;
-            if(!roomId) { alert("Musisz podać ID pokoju hosta!"); return; }
-        }
-        document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('char-select').style.display = 'flex';
-        window.mpMode = mode;
-    }
-
-    function selectHero(name, cls, baseHp, baseDmg) {
-        player.name = name; player.class = cls; player.hp = baseHp; player.maxHp = baseHp; player.baseDmg = baseDmg;
-        document.getElementById('ch-class').innerText = cls;
-        document.getElementById('char-select').style.display = 'none';
-        
+    function startGameSingle() {
         is18Plus = document.getElementById('mode-18plus').checked;
         difficulty = parseInt(document.getElementById('diff-selector').value);
         if(difficulty === 2) diffMult = 1.5; if(difficulty === 3) diffMult = 2.0;
 
-        if(window.mpMode === 'single') startGameSingle();
-        else if(window.mpMode === 'host') hostGame();
-        else if(window.mpMode === 'join') joinGame();
+        // Reset
+        player.hp = 100; player.lvl = 1; player.coins = 0; player.inventory = [];
+        addToInventory('pot', 2); addToInventory('bomb', 1);
+        
+        startEngine();
     }
 
-    function startGameSingle() {
-        isMultiplayer = false;
+    function startEngine() {
+        document.getElementById('main-menu').style.display = 'none';
         document.getElementById('game-wrapper').style.display = 'flex';
         document.getElementById('ui-worldname').innerText = WORLDS[selectedWorld].title;
-        if(is18Plus) { document.getElementById('18-items-div').style.display = 'block'; logMsg("UWAGA: Tryb 18+ aktywny!", "log-18"); }
-        generateLevel(); updateAll();
-    }
-
-    // --- MULTIPLAYER P2P (PEERJS) ---
-    function hostGame() {
-        isMultiplayer = true; isHost = true;
-        document.getElementById('loading-screen').style.display = 'flex';
-        peer = new Peer(); 
-        peer.on('open', id => { document.getElementById('mp-room-id').innerText = id; });
-        peer.on('connection', connection => {
-            conn = connection; setupMpEvents();
-            document.getElementById('loading-screen').style.display = 'none'; document.getElementById('game-wrapper').style.display = 'flex';
-            document.getElementById('mp-status').innerText = "TRYB: CO-OP (HOST)";
-            logMsg("Drugi gracz dołączył do gry!", "log-mp");
-            generateLevel(); syncMapToClient(); updateAll();
-        });
-    }
-
-    function joinGame() {
-        let roomId = document.getElementById('join-id').value;
-        isMultiplayer = true; isHost = false;
-        document.getElementById('loading-screen').style.display = 'flex'; document.getElementById('mp-room-id').innerText = "Łączenie...";
-        peer = new Peer();
-        peer.on('open', () => {
-            conn = peer.connect(roomId);
-            conn.on('open', () => {
-                setupMpEvents();
-                document.getElementById('loading-screen').style.display = 'none'; document.getElementById('game-wrapper').style.display = 'flex';
-                document.getElementById('mp-status').innerText = "TRYB: CO-OP (KLIENT)";
-                logMsg("Połączono z serwerem Hosta!", "log-mp");
-            });
-        });
-    }
-
-    function setupMpEvents() {
-        conn.on('data', data => {
-            if(data.type === 'sync_map') { 
-                map = data.map; entities = data.entities; currentLevel = data.lvl; selectedWorld = data.world; currentBiomeIndex = data.biome; 
-                document.getElementById('ui-worldname').innerText = WORLDS[selectedWorld].title; 
-                document.getElementById('biome-name').innerText = WORLDS[selectedWorld].biomes[currentBiomeIndex].name; 
-                player.x = data.spawnX; player.y = data.spawnY; 
-                logMsg("Mapa zsynchronizowana.", "log-mp"); updateAll(); 
-            }
-            if(data.type === 'move') { otherPlayer = {x: data.x, y: data.y, dir: data.dir}; updateAll(); }
-            if(data.type === 'loot') { let idx = entities.findIndex(e => e.x === data.x && e.y === data.y); if(idx !== -1) entities.splice(idx, 1); updateAll(); }
-        });
-    }
-
-    function broadcastMove() { if(isMultiplayer && conn && conn.open) conn.send({type: 'move', x: player.x, y: player.y, dir: player.dir}); }
-    function broadcastRemoval(x, y) { if(isMultiplayer && conn && conn.open) conn.send({type: 'loot', x: x, y: y}); }
-    function syncMapToClient() { if(isHost && isMultiplayer && conn && conn.open) conn.send({type: 'sync_map', map: map, entities: entities, lvl: currentLevel, world: selectedWorld, biome: currentBiomeIndex, spawnX: player.x, spawnY: player.y}); }
-
-    // ==========================================
-    // 5. GENEROWANIE MAPY
-    // ==========================================
-    function getEmptyFloor() { while(true) { let x = Math.floor(Math.random()*MAP_SIZE); let y = Math.floor(Math.random()*MAP_SIZE); if(map[y][x] === T_FLOOR && (x !== player.x || y !== player.y)) { if(!entities.some(e => e.x === x && e.y === y)) return {x, y}; } } }
-    function placeOnMap(tile, count) { for(let i=0; i<count; i++) { let p = getEmptyFloor(); map[p.y][p.x] = tile; } }
-    function placeEntity(sym, count, data) { for(let i=0; i<count; i++) { let p = getEmptyFloor(); entities.push({x: p.x, y: p.y, symbol: sym, isEnemy: false, ...data}); } }
-
-    function generateLevel(isSubLevel = false) {
-        if(!isHost && isMultiplayer) return; // Klient dostaje mapę od hosta
+        if(is18Plus) { document.getElementById('18-items-div').style.display = 'block'; }
         
+        // Zapewnienie wielkości tablicy inwentarza
+        while(player.inventory.length < INV_SIZE) player.inventory.push(null);
+
+        generateLevel(); updateAll();
+
+        // SYSTEM CZASU RZECZYWISTEGO (GONITWA)
+        clearInterval(monsterInterval);
+        if(difficulty > 1) {
+            let speed = difficulty === 3 ? 1000 : 2000; // 1s lub 2s
+            monsterInterval = setInterval(() => {
+                if(state === 'EXPLORE') {
+                    moveMonstersRealTime();
+                    updateAll();
+                }
+            }, speed);
+            logMsg("POTWORY BĘDĄ CIĘ GONIĆ! Nie stój w miejscu!", "log-dmg");
+        }
+    }
+
+    function generateLevel() {
         map = []; entities = [];
         for(let y=0; y<MAP_SIZE; y++) { map[y] = []; for(let x=0; x<MAP_SIZE; x++) map[y][x] = T_WALL; }
-
         let x = Math.floor(MAP_SIZE/2), y = Math.floor(MAP_SIZE/2);
         player.x = x; player.y = y; player.dir = 0; map[y][x] = T_FLOOR;
 
-        let floorCount = 0; let target = isSubLevel ? 40 : 180;
+        let floorCount = 0; let target = 200;
         while(floorCount < target) {
             let d = Math.floor(Math.random()*4);
             if(d===0 && y>2) y--; else if(d===1 && y<MAP_SIZE-3) y++;
@@ -601,69 +460,44 @@
         }
 
         let wData = WORLDS[selectedWorld];
+        currentBiomeIndex = Math.floor(Math.random() * wData.biomes.length);
+        document.getElementById('biome-name').innerText = wData.biomes[currentBiomeIndex].name;
 
-        if(isSubLevel) {
-            placeOnMap(T_PORTAL, 1); 
-            let bPos = getEmptyFloor();
-            entities.push({ x: bPos.x, y: bPos.y, isEnemy: true, isBoss: true, name: "Strażnik Skarbca", symbol: "🛡️", hp: 200 * diffMult, maxHp: 200 * diffMult, dmg: 30 * diffMult, drops: [{type:'mat', id:'magic', chance: 1.0}, {type:'coin', val: 150}] });
-            placeEntity('🔥', 2, {type:'mat', id:'fire'}); placeEntity('✨', 2, {type:'mat', id:'magic'}); placeEntity('🗡️', 1, {type:'wep_drop'}); 
-        } else {
-            currentBiomeIndex = Math.floor(Math.random() * wData.biomes.length);
-            document.getElementById('biome-name').innerText = wData.biomes[currentBiomeIndex].name;
+        placeOnMap(T_EXIT, 1);
+        placeEntity('🧪', 2, {id: 'pot', isEnemy: false}); 
+        placeEntity('🔑', 1, {id: 'key', isEnemy: false}); 
+        placeEntity('🪵', 4, {id: 'wood', isEnemy: false}); 
+        placeEntity('⛓️', 2, {id: 'steel', isEnemy: false});
 
-            placeOnMap(T_EXIT, 1); 
-            if(!isMultiplayer) placeOnMap(T_MEGA_PORTAL, 1); 
-            placeOnMap(T_DOOR, 1); 
-            
-            placeEntity('🧪', 2, {type: 'pot'}); placeEntity('🔑', 1, {type: 'key'}); placeEntity('💣', 1, {type: 'bomb'});
-            
-            if(selectedWorld === 'elf') { placeEntity('✨', 3, {type: 'mat', id: 'magic'}); placeEntity('🪵', 2, {type: 'mat', id: 'wood'}); }
-            else if(selectedWorld === 'dwarf') { placeEntity('⛓️', 4, {type: 'mat', id: 'steel'}); placeEntity('🔥', 2, {type: 'mat', id: 'fire'}); }
-            else { placeEntity('🪵', 3, {type: 'mat', id: 'wood'}); placeEntity('⛓️', 2, {type: 'mat', id: 'steel'}); }
+        if(is18Plus) { placeEntity('💋', 1, {id: 'hooker', isEnemy: false}); placeEntity('🍺', 2, {id: 'vodka', isEnemy: false}); }
 
-            if(is18Plus) { if(Math.random() < 0.6) placeEntity('💋', 1, {type: 'hooker'}); placeEntity('🍺', 2, {type: 'vodka'}); placeEntity('💊', 1, {type: 'drug'}); }
-
-            let mCount = 4 + currentLevel;
-            for(let i=0; i<mCount; i++) {
-                let mType = wData.mobs[Math.floor(Math.random() * wData.mobs.length)];
-                let p = getEmptyFloor();
-                entities.push({ x: p.x, y: p.y, isEnemy: true, isBoss: false, name: mType.n, symbol: mType.s, hp: mType.hp * diffMult, maxHp: mType.hp * diffMult, dmg: mType.d * diffMult, drops: [{type:'coin', val: player.activePerkIds.includes('thief') ? 25 : 15}] });
-            }
-
-            if(hookerRevenge) { 
-                let h = getEmptyFloor(); 
-                entities.push({ x: h.x, y: h.y, isEnemy: true, isBoss: true, name: "Wściekła Kurtyzana", symbol: "💃", hp: 300 * diffMult, maxHp: 300 * diffMult, dmg: 40 * diffMult, drops: [{type:'ovaries', chance: 1.0}] }); 
-                hookerRevenge = false; logMsg("Wściekła Kurtyzana łaknie zemsty!", "log-dmg"); 
-            }
+        let mCount = 4 + currentLevel;
+        for(let i=0; i<mCount; i++) {
+            let mType = wData.mobs[Math.floor(Math.random() * wData.mobs.length)];
+            let p = getEmptyFloor();
+            entities.push({ x: p.x, y: p.y, isEnemy: true, name: mType.n, symbol: mType.s, hp: mType.hp * diffMult, maxHp: mType.hp * diffMult, dmg: mType.d * diffMult });
         }
     }
 
-    // ==========================================
-    // 6. RUCH, EFEKTY I ZBIERANIE
-    // ==========================================
-    function addEffect(name, type, statMod, combatDur, stepDur) { let existing = player.effects.find(e => e.name === name); if(existing) { existing.combatDuration = combatDur; existing.stepDuration = stepDur; } else { player.effects.push({name, type, statMod, combatDuration: combatDur, stepDuration: stepDur}); } updateAll(); }
+    function getEmptyFloor() { while(true) { let x = Math.floor(Math.random()*MAP_SIZE); let y = Math.floor(Math.random()*MAP_SIZE); if(map[y][x] === T_FLOOR && (x !== player.x || y !== player.y)) { if(!entities.some(e => e.x === x && e.y === y)) return {x, y}; } } }
+    function placeOnMap(tile, count) { for(let i=0; i<count; i++) { let p = getEmptyFloor(); map[p.y][p.x] = tile; } }
+    function placeEntity(sym, count, data) { for(let i=0; i<count; i++) { let p = getEmptyFloor(); entities.push({x: p.x, y: p.y, symbol: sym, ...data}); } }
+
+    function addEffect(name, type, statMod, combatDur, stepDur) { player.effects.push({name, type, statMod, combatDuration: combatDur, stepDuration: stepDur}); updateAll(); }
     
-    function processStepEffects() {
-        if(player.activePerkIds.includes('regen')) player.hp = Math.min(player.maxHp, player.hp + 2);
-        if(player.alimony && player.coins > 0) { player.coins--; if(Math.random()<0.05) logMsg("Komornik kradnie monetę!", "log-dmg"); }
-        for(let i = player.effects.length - 1; i >= 0; i--) {
-            let e = player.effects[i];
-            if(e.stepDuration > 0) {
-                if(e.name === 'Haj Narkotykowy') player.hp -= 5;
-                if(e.name === 'Krwawienie') player.hp -= 3;
-                e.stepDuration--; if(e.stepDuration <= 0 && e.combatDuration <= 0) player.effects.splice(i, 1);
-            }
-        }
-        if(player.hp <= 0) { player.hp = 0; logMsg("Zmarłeś z wycieńczenia!", "log-dmg"); state = 'DEAD'; }
-    }
-
-    function moveMonsters() {
-        if(difficulty < 2) return; 
+    // CZAS RZECZYWISTY RUCH POTWORÓW
+    function moveMonstersRealTime() {
         entities.forEach(e => {
-            if(e.isEnemy && Math.random() < (difficulty===3 ? 0.6 : 0.3)) { 
+            if(e.isEnemy) { 
                 let dx = Math.sign(player.x - e.x); let dy = Math.sign(player.y - e.y);
-                if(Math.random()>0.5 && dx!==0) { if(map[e.y][e.x+dx]===T_FLOOR && !(e.x+dx===player.x && e.y===player.y)) e.x += dx; }
-                else if(dy!==0) { if(map[e.y+dy][e.x]===T_FLOOR && !(e.x===player.x && e.y+dy===player.y)) e.y += dy; }
+                if(Math.random() > 0.3) { 
+                    if(Math.random()>0.5 && dx!==0 && map[e.y][e.x+dx]===T_FLOOR && !(e.x+dx===player.x && e.y===player.y)) e.x += dx;
+                    else if(dy!==0 && map[e.y+dy][e.x]===T_FLOOR && !(e.x===player.x && e.y+dy===player.y)) e.y += dy;
+                }
+                // Jeśli potwór wejdzie w gracza -> WALKA
+                if(Math.abs(player.x - e.x) + Math.abs(player.y - e.y) === 1 && Math.random() < 0.2) {
+                    currentEnemy = e; state = 'COMBAT'; document.getElementById('combat-screen').style.display = 'flex'; updateCombatUI();
+                }
             }
         });
     }
@@ -676,221 +510,116 @@
             let vec = DIRS[player.dir]; let sign = moveType === 'FORWARD' ? 1 : -1;
             let nx = player.x + vec.dx * sign; let ny = player.y + vec.dy * sign;
             
-            let tile = map[ny][nx]; if(tile === T_WALL) return;
-            
-            if(tile === T_MEGA_PORTAL) { lastPlayerPos = {x: player.x, y: player.y}; player.x = nx; player.y = ny; openOverlay('portal-screen'); return; }
-            if(tile === T_DOOR) { if(player.keys > 0) { player.keys--; savedMainMap = { map: map, entities: entities, x: player.x, y: player.y, dir: player.dir }; generateLevel(true); if(isHost) syncMapToClient(); updateAll(); broadcastMove(); return; } else return; }
-            if(tile === T_PORTAL) { map = savedMainMap.map; entities = savedMainMap.entities; player.x = savedMainMap.x; player.y = savedMainMap.y; player.dir = savedMainMap.dir; savedMainMap = null; if(isHost) syncMapToClient(); updateAll(); broadcastMove(); return; }
-            if(tile === T_EXIT) { if(player.activePerkIds.includes('healer')) player.hp = player.maxHp; currentLevel++; generateLevel(); if(isHost) syncMapToClient(); updateAll(); broadcastMove(); return; }
+            if(map[ny][nx] !== T_WALL) {
+                if(map[ny][nx] === T_EXIT) { currentLevel++; generateLevel(); updateAll(); return; }
 
-            lastPlayerPos = {x: player.x, y: player.y}; player.x = nx; player.y = ny;
-            processStepEffects(); if(player.hp <= 0) return;
-            if(Math.random() < 0.05 && difficulty >= 2) { addEffect('Krwawienie', 'debuff', null, 0, 5); logMsg("Wchodzisz w kolce! Krwawisz.", "log-dmg"); }
+                player.x = nx; player.y = ny;
+                
+                // Head Bobbing animation trigger
+                canvas.classList.remove('head-bob');
+                void canvas.offsetWidth; // trigger reflow
+                canvas.classList.add('head-bob');
 
-            let entIdx = entities.findIndex(e => e.x === nx && e.y === ny);
-            if(entIdx !== -1) {
-                let e = entities[entIdx];
-                if(!e.isEnemy) {
-                    if(e.type === 'pot') { player.inv.pots++; logMsg("Bierzesz Miksturę 🧪", "log-new"); }
-                    else if(e.type === 'key') { player.keys++; logMsg("Znalazłeś Klucz 🔑"); }
-                    else if(e.type === 'bomb') { player.inv.bombs++; logMsg("Znalazłeś Bombę 💣"); }
-                    else if(e.type === 'coin') { player.coins += 25; logMsg("Znalazłeś 25 🪙", "log-new"); }
-                    else if(e.type === 'mat') { MATS[e.id]++; logMsg(`Znajdujesz Surowiec: ${e.id}`, "log-new"); }
-                    else if(e.type === 'wep_drop') { let w = WEAPONS[Math.min(WEAPONS.length-1, Math.floor(currentLevel/2) + 2)]; player.weapon = w; logMsg(`Podnosisz legendarną broń: ${w.name}!`, "log-epic"); }
-                    else if(e.type === 'vodka') { player.inv.vodka++; logMsg("Zdobyto Wódkę.", "log-18"); } 
-                    else if(e.type === 'drug') { player.inv.drugs++; logMsg("Zdobyto Fisstech.", "log-18"); }
-                    else if(e.type === 'hooker') {
-                        if(player.coins >= 50) {
-                            let safe = confirm("Noc uciech z Kurtyzaną.\nUżyć magicznego zabezpieczenia? (Koszt: 70 🪙).\nAnuluj = 50 🪙 (RYZYKO!)");
-                            if(safe && player.coins >= 70) { player.coins -= 70; player.hp = player.maxHp; addEffect('Rozkosz', 'buff', null, 0, 20); logMsg("Rozkosz (+10 Def)!", "log-heal"); } 
-                            else {
-                                player.coins -= 50; player.hp = player.maxHp;
-                                let r = Math.random();
-                                if(r < 0.25) { addEffect('Choroba', 'debuff', null, 0, 50); logMsg("Złapałeś chorobę weneryczną (-5 Ataku)!", "log-dmg"); } 
-                                else if (r < 0.55 && !player.companion && !player.alimony) {
-                                    if(confirm("NIESPODZIANKA! Zostałeś ojcem! Zabrać dziecko ze sobą jako kompana? (Anuluj = Porzucasz je i płacisz ALIMENTY)")) { player.companion = {name: "Młody Potomek", lvl: 1, dmg: 5, upgradeCost: 40}; logMsg("Dziecko dołącza do walki!", "log-epic"); } else { player.alimony = true; logMsg("Komornik nakłada na Ciebie Alimenty!", "log-dmg"); }
-                                } else { addEffect('Rozkosz', 'buff', null, 0, 20); logMsg("Miałeś szczęście. Czysta rozkosz.", "log-heal"); }
+                // Check Entities
+                let entIdx = entities.findIndex(e => e.x === nx && e.y === ny);
+                if(entIdx !== -1) {
+                    let e = entities[entIdx];
+                    if(!e.isEnemy) {
+                        if(e.id === 'hooker') {
+                            if(player.coins >= 50 && confirm("Użyć zabezpieczenia? (70 mon). Anuluj=50")) { player.coins-=70; addEffect('Rozkosz','buff',0,0,20); logMsg("Rozkosz!"); } 
+                            else { player.coins-=50; if(Math.random()<0.3) { addEffect('Choroba','debuff',0,0,50); logMsg("Zaraziłeś się!","log-dmg"); } else logMsg("Fart.","log-heal"); }
+                        } else {
+                            if(addToInventory(e.id, 1)) {
+                                logMsg(`Zebrałeś: ${ITEM_DB[e.id].name}`, "log-new");
                             }
-                        } else { logMsg("Kurtyzana ignoruje biedaka.", "log-dmg"); }
+                        }
+                        entities.splice(entIdx, 1);
+                    } else { 
+                        currentEnemy = e; state = 'COMBAT'; document.getElementById('combat-screen').style.display = 'flex'; updateCombatUI(); return; 
                     }
-                    entities.splice(entIdx, 1);
-                    broadcastRemoval(nx, ny);
-                } else { currentEnemy = e; state = 'COMBAT'; document.getElementById('combat-screen').style.display = 'flex'; updateCombatUI(); broadcastMove(); return; }
+                }
             }
         }
-        moveMonsters(); broadcastMove(); updateAll();
+        updateAll();
     }
 
-    minimap.addEventListener('click', (e) => {
-        if(state !== 'EXPLORE' || player.inv.teles <= 0) return;
-        let rect = minimap.getBoundingClientRect(); let mx = Math.floor((e.clientX - rect.left) / TILE_SIZE); let my = Math.floor((e.clientY - rect.top) / TILE_SIZE);
-        if(map[my] && (map[my][mx] === T_FLOOR || map[my][mx] === T_DOOR || map[my][mx] === T_EXIT || map[my][mx] === T_MEGA_PORTAL)) { player.inv.teles--; player.x = mx; player.y = my; updateAll(); broadcastMove(); }
-    });
-
-    // ==========================================
-    // 7. WALKA I KALKULACJE
-    // ==========================================
-    function getTotalDmg() {
-        let dmg = player.baseDmg + player.weapon.dmg;
-        if(player.weapon.name === "Skarpety na ręce") dmg += (player.lvl * 5); // Ukryta moc
-        if(player.effects.some(e => e.name === 'Haj Narkotykowy')) dmg += 50;
-        if(player.effects.some(e => e.name === 'Płonące Ostrze')) dmg += 20;
-        if(player.effects.some(e => e.name === 'Choroba')) dmg = Math.max(1, dmg - 5);
-        if(player.activePerkIds.includes('berserk') && (player.hp / player.maxHp) < 0.3) dmg = Math.floor(dmg * 1.5);
-        return dmg;
-    }
-
-    function getTotalArmor() { 
-        let arm = player.baseArmor + player.armor.def; 
-        if(player.effects.some(e => e.name === 'Rozkosz')) arm += 10; 
-        if(player.effects.some(e => e.name === 'Tarcza Światła')) arm += 20; 
-        return arm; 
-    }
-
-    function updateCombatUI() { 
-        document.getElementById('c-enemy-hp-bar').style.width = Math.max(0, (currentEnemy.hp / currentEnemy.maxHp) * 100) + '%'; 
-        document.getElementById('c-player-hp-bar').style.width = Math.max(0, (player.hp / player.maxHp) * 100) + '%'; 
-        document.getElementById('c-player-hp-text').innerText = Math.floor(player.hp); 
-        updateUI(); 
-    }
-
-    function combatAction(action) {
-        if(state !== 'COMBAT') return;
-
-        let dmg = getTotalDmg();
-        if(currentEnemy.isBoss && player.activePerkIds.includes('boss_slayer')) dmg *= 2;
-        let hitChance = player.effects.some(e => e.name === 'Pijany') ? 0.5 : 1.0;
-
-        if(action === 'Zwykly' || action === 'Silny') {
-            if(Math.random() > hitChance) { logMsg("Przez pijaństwo chybiasz celu!", "log-dmg"); }
-            else {
-                if(action === 'Silny' && Math.random() < (0.5 + (player.activePerkIds.includes('lucky')?0.15:0))) { 
-                    let mult = player.activePerkIds.includes('assassin') ? 3 : 2; currentEnemy.hp -= dmg * mult; logMsg(`KRYTYK x${mult}! ${dmg*mult} obr.`, "log-epic"); 
-                } else if(action === 'Silny') { logMsg(`Chybiasz silnym ciosem!`, "log-dmg"); } else { currentEnemy.hp -= dmg; logMsg(`Zadajesz ${dmg} obr.`); }
-            }
-            if(player.activePerkIds.includes('pyro') && Math.random() < 0.3) { currentEnemy.hp -= 15; logMsg("Piromancja podpala wroga! (-15 HP)", "log-epic"); }
-        }
-        else if(action === 'Bomba') { if(player.inv.bombs > 0) { player.inv.bombs--; let bDmg = player.activePerkIds.includes('sapper') ? 200 : 100; currentEnemy.hp -= bDmg; logMsg(`BUM! Bomba rani za ${bDmg}!`, "log-epic"); } else return; }
-        else if(action === 'Mikstura') { if(player.inv.pots > 0) { player.inv.pots--; player.hp = player.activePerkIds.includes('alchemist') ? player.maxHp : Math.min(player.maxHp, player.hp + 50); logMsg(`Leczysz się w walce.`); } else return; }
-        else if(action === 'Ucieczka') { if(player.activePerkIds.includes('runner') || Math.random() < 0.6) { state = 'EXPLORE'; document.getElementById('combat-screen').style.display = 'none'; player.x = lastPlayerPos.x; player.y = lastPlayerPos.y; broadcastMove(); updateAll(); return; } else logMsg("Nie udało się uciec!", "log-dmg"); }
-
-        if(player.companion && currentEnemy.hp > 0 && action !== 'Ucieczka') { let compDmg = player.companion.dmg + Math.floor(Math.random() * 3); currentEnemy.hp -= compDmg; logMsg(`Towarzysz pomaga i zadaje ${compDmg} obr!`, "log-heal"); }
-
-        if(currentEnemy.hp <= 0) {
-            logMsg(`Pokonałeś ${currentEnemy.name}!`, "log-new");
-            if(player.activePerkIds.includes('vampire')) player.hp = Math.min(player.maxHp, player.hp + Math.floor(player.maxHp * 0.15));
-            currentEnemy.drops.forEach(d => { 
-                if(Math.random() <= (d.chance || 1.0)) { 
-                    if(d.type === 'coin') player.coins += d.val; 
-                    if(d.type === 'mat') MATS[d.id]++;
-                    if(d.type === 'ovaries') { player.inv.ovaries++; logMsg("Wypadł mroczny łup: Jajniki...", "log-18"); }
-                } 
-            });
-            
-            let cX = currentEnemy.x, cY = currentEnemy.y;
-            entities.splice(entities.findIndex(e => e === currentEnemy), 1);
-            state = 'EXPLORE'; document.getElementById('combat-screen').style.display = 'none'; currentEnemy = null; 
-            processCombatEffects(); broadcastRemoval(cX, cY); updateAll(); return;
-        }
-
-        if(player.activePerkIds.includes('ghost') && Math.random() < 0.2) { logMsg("Przenikasz przez cios jako Duch!", "log-heal"); } 
-        else { 
-            let enemyDmg = Math.max(1, (currentEnemy.dmg + Math.floor(Math.random()*5)) - getTotalArmor()); 
-            player.hp -= enemyDmg; logMsg(`${currentEnemy.name} rani Cię za ${enemyDmg}!`, "log-dmg"); 
-            if(player.activePerkIds.includes('toxic')) { currentEnemy.hp -= 10; logMsg("Wróg zatruł się o Twoją krew (-10 HP).", "log-heal"); }
-        }
-
-        if(player.hp <= 0) { player.hp = 0; logMsg("💀 ZGINĄŁEŚ!", "log-dmg"); if(difficulty === 3) document.querySelector('.combat-menu').style.display = 'none'; }
-        updateCombatUI();
-    }
-
-    // ==========================================
-    // 8. INTERFEJS, EKWIPUNEK I PERKI
-    // ==========================================
-    function levelUp() {
-        if(player.coins >= player.levelCost) {
-            player.coins -= player.levelCost; player.lvl++; player.maxHp += 20; player.hp = player.maxHp; player.baseDmg += 3; player.levelCost = Math.floor(player.levelCost * 1.5);
-            if(player.activePerkIds.includes('healer')) player.hp = player.maxHp;
-            logMsg(`Awans na ${player.lvl} poziom!`, "log-epic");
-            closeOverlay('character-screen'); openPerkScreen();
-        } else { logMsg("Za mało monet na awans!", "log-dmg"); }
-    }
-
-    function openPerkScreen() {
-        state = 'PERK_SELECT'; document.getElementById('perk-screen').style.display = 'flex';
-        let available = PERKS.filter(p => !player.activePerkIds.includes(p.id));
-        offeredPerks = available.sort(() => 0.5 - Math.random()).slice(0, 3);
-        let container = document.getElementById('perk-container'); container.innerHTML = '';
-        if(offeredPerks.length === 0) { container.innerHTML = `<div class="perk-card" onclick="closeOverlay('perk-screen')"><h3>Brak Perków</h3>Zdobyłeś wszystko!</div>`; return; }
-        offeredPerks.forEach((p, idx) => { container.innerHTML += `<div class="perk-card" onclick="takePerk(${idx})"><h3>${p.name}</h3><span style="font-size:12px; color:#aaa;">${p.desc}</span></div>`; });
-    }
-
-    function takePerk(idx) {
-        let p = offeredPerks[idx]; player.activePerkIds.push(p.id); player.perksList.push(p.name); p.onTake(player);
-        logMsg(`Zyskujesz Perk: ${p.name}!`, "log-epic"); closeOverlay('perk-screen'); openOverlay('character-screen');
-    }
-
-    function useItem(type) {
-        if(type === 'pot' && player.inv.pots > 0) { player.inv.pots--; player.hp = player.activePerkIds.includes('alchemist') ? player.maxHp : Math.min(player.maxHp, player.hp + 50); logMsg("Wypito Miksturę Leczenia.", "log-heal"); }
-        if(type === 'vodka' && player.inv.vodka > 0) { player.inv.vodka--; player.hp = Math.min(player.maxHp, player.hp + 100); addEffect('Pijany', 'debuff', null, 4, 0); logMsg("Tęgi trunek! Odzyskujesz zdrowie, ale wzrok Ci się zamazuje.", "log-18"); }
-        if(type === 'drug' && player.inv.drugs > 0) { player.inv.drugs--; addEffect('Haj Narkotykowy', 'buff', null, 5, 20); logMsg("Wciągasz Fisstech. Czujesz niesamowitą moc...", "log-18"); }
-        if(type === 'ovaries' && player.inv.ovaries > 0) { player.inv.ovaries--; player.maxHp += 50; player.hp += 50; player.baseDmg -= 5; logMsg("Konsumujesz mroczny łup. (+50 Max HP, ale tracisz siłę).", "log-18"); }
-        updateUI();
-    }
-
-    function upgradeCompanion() {
-        if(player.companion && player.coins >= player.companion.upgradeCost) {
-            player.coins -= player.companion.upgradeCost; player.companion.lvl++; player.companion.dmg += 4; player.companion.upgradeCost = Math.floor(player.companion.upgradeCost * 1.5);
-            logMsg(`Twój towarzysz rośnie w siłę! (Lvl ${player.companion.lvl})`, "log-epic"); updateUI();
-        } else { logMsg("Brakuje monet na trening towarzysza!", "log-dmg"); }
-    }
-
+    // --- KOWAL I MENU ---
+    function openCharacterMenu() { state = 'CHAR_MENU'; document.getElementById('character-screen').style.display = 'flex'; renderInventory(); updateUI(); }
+    
     function openCrafting() {
-        openOverlay('crafting-screen');
+        state = 'CRAFT'; document.getElementById('crafting-screen').style.display = 'flex';
         let c = document.getElementById('craft-container'); c.innerHTML = '';
         RECIPES.forEach((r, idx) => {
-            if(r.req.ovaries && !is18Plus) return; // Tajna receptura ukryta w zwykłym trybie
-            let reqStr = Object.entries(r.req).map(([k, v]) => `${k}:${v}`).join(', ');
-            c.innerHTML += `<div class="craft-item" onclick="craft(${idx})"><b style="color:#0ff;">${r.name}</b><br><span style="color:#aaa;">Wymaga: ${reqStr}</span></div>`;
+            let reqStr = Object.entries(r.req).map(([k, v]) => `${ITEM_DB[k].name}:${v}`).join(', ');
+            c.innerHTML += `<div class="craft-item" onclick="craft(${idx})"><b style="color:#0ff;">${r.name}</b><br><span style="color:#889;">${reqStr}</span></div>`;
         });
     }
 
     function craft(idx) {
         let r = RECIPES[idx]; let canCraft = true;
-        for(let key in r.req) {
-            if(key === 'ovaries' && player.inv.ovaries < r.req[key]) canCraft = false;
-            else if(key !== 'ovaries' && MATS[key] < r.req[key]) canCraft = false;
-        }
+        for(let key in r.req) { if(getInventoryCount(key) < r.req[key]) canCraft = false; }
         if(canCraft) {
-            for(let key in r.req) { if(key !== 'ovaries') MATS[key] -= r.req[key]; else player.inv.ovaries--; }
-            if(r.type === 'wep') { player.weapon = r.item; logMsg(`Wykuto nową broń: ${r.name}!`, "log-epic"); } 
-            else if(r.type === 'arm') { player.armor = r.item; logMsg(`Wykuto nowy pancerz: ${r.name}!`, "log-epic"); } 
-            else if(r.type === 'use') r.action(player);
-            openCrafting(); updateUI();
-        } else { logMsg("Brakuje Ci surowców na ten przedmiot!", "log-dmg"); }
+            for(let key in r.req) { removeInventoryItem(key, r.req[key]); }
+            r.action(player); openCrafting(); updateUI();
+        } else { logMsg("Brakuje surowców w plecaku!", "log-dmg"); }
     }
 
-    function travelToWorld(wId) {
-        selectedWorld = wId; currentLevel++; 
-        document.getElementById('ui-worldname').innerText = WORLDS[selectedWorld].title; 
-        logMsg(`Przeszedłeś przez portal do: ${WORLDS[selectedWorld].title}!`, "log-epic"); 
-        closeOverlay('portal-screen'); generateLevel(); if(isHost) syncMapToClient(); updateAll(); 
+    // --- WALKA ---
+    function getTotalDmg() { return player.baseDmg + player.weapon.dmg + (player.effects.some(e=>e.name==='Haj')?50:0); }
+    function getTotalArmor() { return player.baseArmor + player.armor.def; }
+
+    function updateCombatUI() { 
+        document.getElementById('c-enemy-hp-bar').style.width = Math.max(0, (currentEnemy.hp / currentEnemy.maxHp) * 100) + '%'; 
+        document.getElementById('c-player-hp-bar').style.width = Math.max(0, (player.hp / player.maxHp) * 100) + '%'; 
+        document.getElementById('c-player-hp-text').innerText = Math.floor(player.hp); 
     }
 
-    // ==========================================
-    // 9. RENDEROWANIE (3D I UI)
-    // ==========================================
+    function combatAction(action) {
+        if(state !== 'COMBAT') return;
+
+        if(action === 'Zwykly' || action === 'Silny') {
+            let dmg = getTotalDmg();
+            if(action === 'Silny' && Math.random() < 0.5) { currentEnemy.hp -= dmg * 2; logMsg(`KRYTYK! ${dmg*2} obr.`, "log-epic"); } 
+            else if(action === 'Silny') { logMsg(`Chybiasz!`, "log-dmg"); } else { currentEnemy.hp -= dmg; logMsg(`Zadajesz ${dmg} obr.`); }
+        }
+        else if(action === 'Bomba') { if(removeInventoryItem('bomb', 1)) { currentEnemy.hp -= 100; logMsg(`BUM! 100 obr!`, "log-epic"); } else { logMsg("Brak bomb w plecaku!"); return;} }
+        else if(action === 'Mikstura') { if(removeInventoryItem('pot', 1)) { player.hp = Math.min(player.maxHp, player.hp + 50); logMsg(`Leczysz się.`); } else return; }
+        else if(action === 'Ucieczka') { if(Math.random() < 0.6) { closeOverlay('combat-screen'); return; } else logMsg("Ucieczka nieudana!", "log-dmg"); }
+
+        if(currentEnemy.hp <= 0) {
+            logMsg(`Zwycięstwo! Zyskałeś złoto.`, "log-new");
+            player.coins += 20;
+            entities.splice(entities.findIndex(e => e === currentEnemy), 1);
+            closeOverlay('combat-screen'); currentEnemy = null; return;
+        }
+
+        let enemyDmg = Math.max(1, (currentEnemy.dmg + Math.floor(Math.random()*5)) - getTotalArmor()); 
+        player.hp -= enemyDmg; logMsg(`Otrzymujesz ${enemyDmg} obr!`, "log-dmg"); 
+        
+        // Red Flash Effect
+        canvas.classList.remove('damage-flash');
+        void canvas.offsetWidth;
+        canvas.classList.add('damage-flash');
+
+        if(player.hp <= 0) { player.hp = 0; logMsg("💀 ZGINĄŁEŚ!", "log-dmg"); if(difficulty === 3) document.querySelector('.combat-menu').style.display = 'none'; clearInterval(monsterInterval); }
+        updateCombatUI();
+    }
+
+    // --- RENDEROWANIE Z LEPSZĄ GRAFIKĄ (Gradienty) ---
     function draw3D() {
-        let b = savedMainMap ? WORLDS[selectedWorld].biomes[0] : WORLDS[selectedWorld].biomes[currentBiomeIndex]; 
-        ctx.fillStyle = b.floor; ctx.fillRect(0, 240, 600, 240); 
-        ctx.fillStyle = '#050508'; ctx.fillRect(0, 0, 600, 240); 
+        let b = WORLDS[selectedWorld].biomes[currentBiomeIndex]; 
+        
+        // Gradient podłogi i sufitu
+        let gradFloor = ctx.createLinearGradient(0, 240, 0, 480); gradFloor.addColorStop(0, '#000'); gradFloor.addColorStop(1, b.floor);
+        ctx.fillStyle = gradFloor; ctx.fillRect(0, 240, 640, 240); 
+        ctx.fillStyle = '#050508'; ctx.fillRect(0, 0, 640, 240); 
 
-        const polyOffsets = [ {w: 600, h: 480, y: 0}, {w: 360, h: 288, y: 96}, {w: 180, h: 144, y: 168}, {w: 80,  h: 64,  y: 208}, {w: 20,  h: 16,  y: 232} ];
+        const polyOffsets = [ {w: 640, h: 480, y: 0}, {w: 384, h: 288, y: 96}, {w: 192, h: 144, y: 168}, {w: 86, h: 64, y: 208}, {w: 22, h: 16, y: 232} ];
         let forward = DIRS[player.dir], right = DIRS[(player.dir + 1) % 4], left = DIRS[(player.dir + 3) % 4];
 
         for(let d = 3; d >= 0; d--) {
             let tx = player.x + forward.dx * d; let ty = player.y + forward.dy * d;
-            let pCurrent = polyOffsets[d], pNext = polyOffsets[d+1]; let cxCurrent = 300, cyCurrent = 240;
+            let pCurrent = polyOffsets[d], pNext = polyOffsets[d+1]; let cxCurrent = 320, cyCurrent = 240;
             let getTile = (vx, vy) => (map[vy] && map[vy][vx] !== undefined) ? map[vy][vx] : T_WALL;
             let tileFront = getTile(tx, ty), tileLeft = getTile(tx + left.dx, ty + left.dy), tileRight = getTile(tx + right.dx, ty + right.dy);
 
@@ -898,25 +627,21 @@
                 let x1 = isLeft ? (cxCurrent - pCurrent.w/2) : (cxCurrent + pCurrent.w/2); let x2 = isLeft ? (cxCurrent - pNext.w/2) : (cxCurrent + pNext.w/2);
                 ctx.beginPath(); ctx.moveTo(x1, cyCurrent - pCurrent.h/2); ctx.lineTo(x2, cyCurrent - pNext.h/2);
                 ctx.lineTo(x2, cyCurrent + pNext.h/2); ctx.lineTo(x1, cyCurrent + pCurrent.h/2); 
-                ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.stroke();
+                let g = ctx.createLinearGradient(x1, 0, x2, 0); g.addColorStop(0, color); g.addColorStop(1, '#000');
+                ctx.fillStyle = isLeft ? g : color; ctx.fill(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
             };
 
             if(tileLeft === T_WALL) drawWallSide(true, b.wall); if(tileRight === T_WALL) drawWallSide(false, b.wall);
             
-            if(tileFront === T_WALL || tileFront === T_DOOR || tileFront === T_EXIT || tileFront === T_PORTAL || tileFront === T_MEGA_PORTAL) {
+            if(tileFront === T_WALL || tileFront === T_EXIT) {
                 let wx = cxCurrent - pCurrent.w/2, wy = cyCurrent - pCurrent.h/2;
-                if(tileFront === T_DOOR) ctx.fillStyle = b.door; else if(tileFront === T_EXIT) ctx.fillStyle = '#888'; else if(tileFront === T_PORTAL) ctx.fillStyle = '#aa00ff'; else if(tileFront === T_MEGA_PORTAL) ctx.fillStyle = '#00ffff'; else ctx.fillStyle = b.wall;
+                ctx.fillStyle = (tileFront === T_EXIT) ? '#888' : b.wall;
                 ctx.fillRect(wx, wy, pCurrent.w, pCurrent.h); ctx.strokeRect(wx, wy, pCurrent.w, pCurrent.h);
-                if(tileFront === T_EXIT) { ctx.fillStyle = '#fff'; ctx.font = `bold ${pCurrent.h/5}px Verdana`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(b.exitText, cxCurrent, cyCurrent); }
-                if(tileFront === T_MEGA_PORTAL) { ctx.fillStyle = '#000'; ctx.font = `bold ${pCurrent.h/5}px Verdana`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText("WYMIAR", cxCurrent, cyCurrent); }
+                if(tileFront === T_EXIT) { ctx.fillStyle = '#fff'; ctx.font = `bold ${pCurrent.h/5}px Verdana`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText("WYJŚCIE", cxCurrent, cyCurrent); }
             } else {
-                ctx.beginPath(); ctx.moveTo(cxCurrent - pCurrent.w/2, cyCurrent + pCurrent.h/2); ctx.lineTo(cxCurrent + pCurrent.w/2, cyCurrent + pCurrent.h/2); ctx.lineTo(cxCurrent + pNext.w/2, cyCurrent + pNext.h/2); ctx.lineTo(cxCurrent - pNext.w/2, cyCurrent + pNext.h/2); ctx.fillStyle = (d%2===0)?'rgba(0,0,0,0.3)':'rgba(0,0,0,0.6)'; ctx.fill();
+                ctx.beginPath(); ctx.moveTo(cxCurrent - pCurrent.w/2, cyCurrent + pCurrent.h/2); ctx.lineTo(cxCurrent + pCurrent.w/2, cyCurrent + pCurrent.h/2); ctx.lineTo(cxCurrent + pNext.w/2, cyCurrent + pNext.h/2); ctx.lineTo(cxCurrent - pNext.w/2, cyCurrent + pNext.h/2); ctx.fillStyle = (d%2===0)?'rgba(0,0,0,0.4)':'rgba(0,0,0,0.7)'; ctx.fill();
                 let ent = entities.find(e => e.x === tx && e.y === ty);
                 if(ent) { ctx.font = `${pCurrent.h * 0.7}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(ent.symbol, cxCurrent, cyCurrent + pCurrent.h/2 + 5); }
-                
-                if(isMultiplayer && otherPlayer && otherPlayer.x === tx && otherPlayer.y === ty) {
-                    ctx.font = `${pCurrent.h * 0.7}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText("🧙‍♂️", cxCurrent, cyCurrent + pCurrent.h/2 + 5);
-                }
             }
         }
     }
@@ -925,43 +650,21 @@
         mCtx.fillStyle = '#0a0a0f'; mCtx.fillRect(0, 0, minimap.width, minimap.height);
         for(let y=0; y<MAP_SIZE; y++) {
             for(let x=0; x<MAP_SIZE; x++) {
-                if(map[y][x] === T_FLOOR) mCtx.fillStyle = '#334';
-                else if(map[y][x] === T_DOOR) mCtx.fillStyle = '#a52a2a';
-                else if(map[y][x] === T_EXIT) mCtx.fillStyle = '#aaaaaa';
-                else if(map[y][x] === T_PORTAL) mCtx.fillStyle = '#aa00ff';
-                else if(map[y][x] === T_MEGA_PORTAL) mCtx.fillStyle = '#00ffff';
-                else continue;
+                if(map[y][x] === T_FLOOR) mCtx.fillStyle = '#334'; else if(map[y][x] === T_EXIT) mCtx.fillStyle = '#aaa'; else continue;
                 mCtx.fillRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE+0.5, TILE_SIZE+0.5);
             }
         }
-        entities.forEach(e => { mCtx.fillStyle = e.isEnemy ? '#ff3333' : '#ffd700'; mCtx.fillRect(e.x*TILE_SIZE + 1, e.y*TILE_SIZE + 1, TILE_SIZE-2, TILE_SIZE-2); });
-        
-        if(isMultiplayer && otherPlayer) { mCtx.fillStyle = '#00ffff'; mCtx.fillRect(otherPlayer.x*TILE_SIZE + 1, otherPlayer.y*TILE_SIZE + 1, TILE_SIZE-2, TILE_SIZE-2); }
-
-        mCtx.save(); mCtx.translate(player.x * TILE_SIZE + TILE_SIZE/2, player.y * TILE_SIZE + TILE_SIZE/2); mCtx.rotate(player.dir * Math.PI/2); mCtx.fillStyle = '#55ff55'; mCtx.beginPath(); mCtx.moveTo(0, -TILE_SIZE/2 + 1); mCtx.lineTo(TILE_SIZE/2 - 1, TILE_SIZE/2 - 1); mCtx.lineTo(-TILE_SIZE/2 + 1, TILE_SIZE/2 - 1); mCtx.fill(); mCtx.restore();
+        entities.forEach(e => { mCtx.fillStyle = e.isEnemy ? '#f33' : '#da0'; mCtx.fillRect(e.x*TILE_SIZE + 1, e.y*TILE_SIZE + 1, TILE_SIZE-2, TILE_SIZE-2); });
+        mCtx.save(); mCtx.translate(player.x * TILE_SIZE + TILE_SIZE/2, player.y * TILE_SIZE + TILE_SIZE/2); mCtx.rotate(player.dir * Math.PI/2); mCtx.fillStyle = '#5f5'; mCtx.beginPath(); mCtx.moveTo(0, -TILE_SIZE/2 + 1); mCtx.lineTo(TILE_SIZE/2 - 1, TILE_SIZE/2 - 1); mCtx.lineTo(-TILE_SIZE/2 + 1, TILE_SIZE/2 - 1); mCtx.fill(); mCtx.restore();
     }
 
     function updateUI() {
-        document.getElementById('ch-class').innerText = player.class; document.getElementById('ch-lvl').innerText = player.lvl;
-        document.getElementById('ch-coins').innerText = player.coins; document.getElementById('ch-hp').innerText = `${Math.floor(player.hp)} / ${player.maxHp}`;
+        document.getElementById('ch-lvl').innerText = player.lvl; document.getElementById('ch-coins').innerText = player.coins;
+        document.getElementById('ch-hp').innerText = `${Math.floor(player.hp)} / ${player.maxHp}`;
         document.getElementById('ch-dmg').innerText = getTotalDmg(); document.getElementById('ch-def').innerText = getTotalArmor();
         document.getElementById('ch-wep').innerText = player.weapon.name; document.getElementById('ch-arm').innerText = player.armor.name;
-        document.getElementById('ch-wood').innerText = MATS.wood; document.getElementById('ch-steel').innerText = MATS.steel;
-        document.getElementById('ch-magic').innerText = MATS.magic; document.getElementById('ch-fire').innerText = MATS.fire;
-        document.getElementById('ch-pots').innerText = player.inv.pots; document.getElementById('ch-bombs').innerText = player.inv.bombs;
-        document.getElementById('ch-keys').innerText = player.keys; document.getElementById('ch-teles').innerText = player.inv.teles;
-        document.getElementById('ch-vodka').innerText = player.inv.vodka; document.getElementById('ch-drugs').innerText = player.inv.drugs;
-        document.getElementById('ch-ovaries').innerText = player.inv.ovaries; document.getElementById('ch-cost').innerText = player.levelCost;
-        
-        let effStr = player.effects.map(e => `[${e.name}]`).join(' '); document.getElementById('ch-effects').innerHTML = effStr || "Brak";
-        let perksStr = player.perksList.map(name => `<b>${name}</b>`).join(', '); document.getElementById('ch-perks-list').innerHTML = perksStr || "Brak";
-
-        let compDiv = document.getElementById('comp-content');
-        if(player.companion) compDiv.innerHTML = `<div class="stat">Imię: <b>${player.companion.name}</b></div><div class="stat">Lvl: <b>${player.companion.lvl}</b> | Pomoc Dmg: <b>${player.companion.dmg}</b></div><button class="btn" style="background:#5a5; width:100%; margin-top:5px; color:#fff;" onclick="upgradeCompanion()">Trenuj (${player.companion.upgradeCost} 🪙)</button>`;
-        else if(player.alimony) compDiv.innerHTML = `<span style="color:#f55; font-weight:bold;">KARA: ALIMENTY</span><br>Komornik regularnie zabiera Twoje monety!`;
-        else compDiv.innerHTML = `<span style="color:#aaa;">Jesteś samotnym wilkiem.</span>`;
-        
-        document.getElementById('ui-hp').innerText = Math.floor(player.hp); document.getElementById('ui-maxhp').innerText = player.maxHp; document.getElementById('ui-dlvl').innerText = currentLevel;
+        document.getElementById('ch-belt').innerText = `${player.belt.name} (Limit: ${player.belt.cap})`;
+        document.getElementById('ui-hp').innerText = Math.floor(player.hp); document.getElementById('ui-dlvl').innerText = currentLevel;
     }
     
     function updateAll() { if(state === 'EXPLORE') { draw3D(); drawMinimap(); } updateUI(); }
