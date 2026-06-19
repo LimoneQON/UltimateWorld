@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fantasy Odyssey 3D</title>
+    <title>Fantasy Odyssey 3D - FPS</title>
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -30,7 +30,7 @@
             <hr style="border-color:#334; margin: 20px 0;">
             <select id="diff-selector">
                 <option value="1">Trudność: Łatwy</option>
-                <option value="2" selected>Trudność: Normalny (Gonitwa)</option>
+                <option value="2" selected>Trudność: Normalny (Aktywne Potwory)</option>
             </select>
             <button class="btn green" onclick="window.startGameSingle()">Nowa Gra</button>
             <button class="btn red" onclick="window.logoutAccount()">Wyloguj</button>
@@ -43,7 +43,8 @@
                 <div id="world">
                     <div class="plane floor"></div>
                     <div class="plane ceil"></div>
-                    </div>
+                    <div id="world-content"></div>
+                </div>
             </div>
         </div>
 
@@ -75,7 +76,7 @@
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button class="btn" style="background:#555; color:#fff;" onclick="window.openCrafting()">Kowal</button>
                     <button class="btn" style="background:#262; color:#fff;" onclick="window.saveGame()">Zapisz</button>
-                    <button class="btn" style="background:#822; color:#fff;" onclick="window.closeOverlay('inventory-overlay')">Zamknij</button>
+                    <button class="btn" style="background:#822; color:#fff;" onclick="window.closeAllOverlays()">Zamknij</button>
                 </div>
             </div>
         </div>
@@ -83,8 +84,8 @@
         <div id="crafting-overlay" class="overlay-ui">
             <div class="panel-box" style="background:#c6c6c6; color:#000; max-width:600px;">
                 <h2 style="color:#333; border-bottom:2px solid #555;">KOWALSTWO</h2>
-                <div id="craft-container" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:left;"></div>
-                <button class="btn" style="background:#555; color:#fff; margin-top:20px;" onclick="window.openOverlay('inventory-overlay')">Wróć</button>
+                <div id="craft-container" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:left; max-height:400px; overflow-y:auto;"></div>
+                <button class="btn" style="background:#555; color:#fff; margin-top:20px;" onclick="window.closeAllOverlays(); window.openOverlay('inventory-overlay');">Wróć do Plecaka</button>
             </div>
         </div>
 
@@ -102,7 +103,7 @@
                 </div>
                 <div id="enemy-sprite">👹</div>
                 <div class="combat-actions">
-                    <button class="btn" onclick="window.combatAction('Zwykly')">Atak (LPM)</button>
+                    <button class="btn" onclick="window.combatAction('Zwykly')">Atak</button>
                     <button class="btn red" onclick="window.combatAction('Silny')">Mocny Cios</button>
                     <button class="btn green" onclick="window.combatAction('Mikstura')">Lecz</button>
                     <button class="btn gold" onclick="window.combatAction('Bomba')">Bomba</button>
