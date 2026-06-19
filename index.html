@@ -3,106 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
-    <title>Fantasy Odyssey 3D</title>
-    <style>
-        /* === BAZA, TŁA I UI === */
-        body { margin: 0; background: #000; color: #eee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; user-select: none; }
-        button { font-family: inherit; }
-
-        .fullscreen-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a24 0%, #020205 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .overlay-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 500; backdrop-filter: blur(8px); }
-
-        .panel-box, .inv-panel, .combat-panel { background: #15151a; border: 2px solid #334; padding: 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,1); width: 100%; max-width: 450px; text-align: center; }
-        .inv-panel { max-width: 600px; }
-
-        h1 { color: #daaa00; font-size: 36px; margin-top: 0; text-shadow: 0 5px 15px rgba(218,170,0,0.3); letter-spacing: 2px;}
-        h2 { color: #5f5; margin-top: 0; border-bottom: 1px solid #334; padding-bottom: 10px;}
-
-        input, select { width: 100%; padding: 14px; margin: 8px 0; background: #0a0a0f; border: 1px solid #445; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.3s;}
-        input:focus { border-color: #daaa00; box-shadow: 0 0 10px rgba(218,170,0,0.3); }
-        .checkbox { display: block; margin: 15px 0; padding: 12px; background: rgba(255,0,0,0.1); border: 1px solid #500; color: #f55; border-radius: 6px; cursor: pointer; font-weight: bold;}
-
-        .btn { width: 100%; background: linear-gradient(180deg, #2a2a35 0%, #15151c 100%); color: #ddd; border: 1px solid #556; padding: 14px; margin: 6px 0; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; }
-        .btn:hover { background: #334; transform: translateY(-2px); border-color: #fff; }
-        .btn.gold { background: linear-gradient(to bottom, #540, #210); border-color: #fc0; color: #fc0; }
-        .btn.green { background: linear-gradient(to bottom, #040, #020); border-color: #5f5; color: #5f5; }
-        .btn.red { background: linear-gradient(to bottom, #500, #200); border-color: #f55; color: #f55; }
-
-        /* === PRAWDZIWY SILNIK 3D (Hardware Accelerated CSS) === */
-        #game-view { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #030303; }
-        #scene { position: absolute; width: 100%; height: 100%; perspective: 600px; }
-        #camera { transform-style: preserve-3d; width: 100%; height: 100%; position: absolute; }
-        #world { transform-style: preserve-3d; position: absolute; left: 50%; top: 50%; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
-
-        /* Efekt "Oddechu/Chodzenia" (Witcher style) */
-        .head-bob { animation: bob 0.5s ease-in-out; }
-        @keyframes bob { 0% { top: 50%; } 50% { top: 52%; } 100% { top: 50%; } }
-
-        /* Ściany z fotorealistycznymi teksturami */
-        .wall { position: absolute; width: 300px; height: 300px; margin-left: -150px; margin-top: -150px; background-size: cover; background-position: center; border: 1px solid rgba(0,0,0,0.8); box-shadow: inset 0 0 150px rgba(0,0,0,0.9); }
-        .tex-human { background-image: url('https://images.unsplash.com/photo-1588344605929-3d12d26fdf7c?q=80&w=400'); } /* Kamienne Lochy */
-        .tex-elf { background-image: url('https://images.unsplash.com/photo-1610448154131-030f2cc4f388?q=80&w=400'); } /* Kryształowy Las */
-        .tex-dwarf { background-image: url('https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?q=80&w=400'); } /* Magma */
-        .tex-door { background-image: url('https://images.unsplash.com/photo-1510174062635-77636e053a47?q=80&w=400'); }
-        
-        .tex-portal { background: radial-gradient(circle, #0ff 0%, #003 100%); opacity: 0.9; box-shadow: 0 0 100px #0ff; }
-        .tex-exit { background: #111; display:flex; align-items:center; justify-content:center; }
-        .wall-text { color: #fff; font-size: 30px; font-weight: bold; text-shadow: 0 0 10px #fff; }
-
-        /* Potwory i Przedmioty 2D w świecie 3D (Billboardy) */
-        .sprite { position: absolute; width: 300px; height: 300px; margin-left: -150px; margin-top: -150px; display: flex; align-items: center; justify-content: center; font-size: 150px; filter: drop-shadow(0 20px 30px rgba(0,0,0,1)); transform-style: preserve-3d; transition: transform 0.3s linear; }
-
-        /* === HUD ORAZ MINECRAFT EKWIPUNEK === */
-        #hud { position: absolute; top: 20px; left: 20px; z-index: 100; pointer-events: none; }
-        .hud-top { display: flex; gap: 20px; align-items: flex-start; }
-        .hud-stats { background: rgba(10,10,15,0.8); padding: 15px; border-radius: 8px; border: 1px solid #334; font-size: 16px; font-weight: bold; line-height: 1.8; box-shadow: 0 5px 15px rgba(0,0,0,0.5);}
-        canvas#minimap { background: rgba(5,5,8,0.9); border: 2px solid #445; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
-        
-        #log-box { margin-top: 15px; width: 350px; height: 160px; overflow-y: hidden; background: rgba(10,10,15,0.8); padding: 15px; border-radius: 8px; border: 1px solid #334; font-size: 13px; line-height: 1.6; }
-        .log-dmg { color: #f55; } .log-epic { color: #fc0; font-weight:bold; } .log-heal { color: #5f5; }
-
-        /* System Grid Ekwipunku */
-        .inv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; background: #1a1a20; padding: 15px; border-radius: 8px; border: 2px solid #223; margin-bottom: 15px;}
-        .inv-grid.hotbar { grid-template-columns: repeat(9, 1fr); padding: 10px; background: rgba(20,20,25,0.9); }
-        .inv-slot { width: 55px; height: 55px; background: #2a2a35; border: 3px inset #445; position: relative; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; user-select: none; transition: 0.1s; }
-        .inv-slot:hover { background: #3a3a45; border-color: #daaa00; }
-        .inv-slot.active { border-color: #fff; box-shadow: inset 0 0 15px rgba(255,255,255,0.4); }
-        .inv-count { position: absolute; bottom: 2px; right: 4px; font-size: 14px; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; }
-
-        #hotbar-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; }
-
-        /* === EKRAN WALKI === */
-        .combat-headers { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 20px;}
-        .combat-headers > div { flex: 1; background: #223; padding: 15px; border-radius: 8px; border: 1px solid #445; }
-        .bar-bg { background: #111; width: 100%; height: 18px; border-radius: 9px; border: 2px solid #000; margin-top: 10px; overflow: hidden;}
-        .bar-fill { height: 100%; background: #f00; transition: width 0.3s; }
-        #enemy-sprite { font-size: 140px; margin: 20px 0; animation: breathe 1.5s infinite alternate ease-in-out; filter: drop-shadow(0 0 30px rgba(255,0,0,0.6)); }
-        .combat-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-        @keyframes breathe { 0% { transform: scale(1); } 100% { transform: scale(1.1) translateY(-15px); } }
-        
-        /* MOBILE DPAD */
-        #mobile-controls { display: none; position: absolute; bottom: 100px; right: 20px; z-index: 150; grid-template-columns: 1fr 1fr 1fr; gap: 10px; justify-items: center;}
-        .dpad-btn { background: rgba(40,40,50,0.8); color: white; border: 2px solid #667; border-radius: 50%; width: 65px; height: 65px; font-size: 24px; font-weight: bold; cursor: pointer; }
-        .dpad-btn:active { background: #556; border-color: #daaa00; }
-        @media (max-width: 900px) { #mobile-controls { display: grid; } .inv-grid.hotbar { grid-template-columns: repeat(5, 1fr); } }
-    </style>
+    <title>Fantasy Odyssey 3D - Ultimate</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
 </head>
 <body>
+
+    <script>
+        window.onerror = function(msg, url, line) {
+            alert("BŁĄD GRY!\nWiadomość: " + msg + "\nLinia: " + line);
+        };
+    </script>
 
     <div id="login-screen" class="fullscreen-ui">
         <div class="panel-box">
             <h1>FANTASY ODYSSEY</h1>
-            <p style="color:#aaa; font-size:14px;">Silnik CSS 3D & Ekwipunek Minecraft</p>
-            <input type="text" id="acc-username" placeholder="Wymyśl Login">
-            <input type="password" id="acc-password" placeholder="Wymyśl Hasło">
+            <p style="color:#aaa; font-size:14px; margin-bottom:20px;">Wersja Modułowa (Multi-File)</p>
+            <input type="text" id="acc-username" placeholder="Login (min. 3 znaki)">
+            <input type="password" id="acc-password" placeholder="Hasło (min. 3 znaki)">
             <button class="btn green" onclick="window.loginAccount()">Zaloguj się</button>
             <button class="btn" onclick="window.registerAccount()">Stwórz konto</button>
         </div>
     </div>
 
     <div id="main-menu" class="fullscreen-ui" style="display:none;">
-        <div class="panel-box">
+        <div class="panel-box" style="max-width: 500px;">
             <h1>WŁADCA ŚWIATÓW</h1>
             <p style="color:#5f5; font-size:16px;">Zalogowano: <b id="logged-user-name"></b></p>
             
@@ -111,9 +36,9 @@
                 <select id="diff-selector">
                     <option value="1">Trudność: Klasyczna (Turowa)</option>
                     <option value="2" selected>Trudność: Czas Rzeczywisty (Potwory same chodzą!)</option>
-                    <option value="3">Trudność: HARDCORE</option>
+                    <option value="3">Trudność: HARDCORE (Permadeath)</option>
                 </select>
-                <label class="checkbox"><input type="checkbox" id="mode-18plus"> Tryb 18+ (Zagrożenia i używki)</label>
+                <label class="checkbox"><input type="checkbox" id="mode-18plus"> Tryb 18+ (Ryzykowne przygody)</label>
                 <button class="btn green" onclick="window.startGameSingle()">Nowa Gra</button>
             </div>
             <button class="btn red" onclick="window.logoutAccount()">Wyloguj się</button>
@@ -121,6 +46,7 @@
     </div>
 
     <div id="game-view" style="display:none;">
+        <div class="scanlines"></div>
         <div id="scene">
             <div id="camera">
                 <div id="world">
@@ -133,7 +59,7 @@
                 <canvas id="minimap" width="180" height="180"></canvas>
                 <div class="hud-stats">
                     HP: <span id="ui-hp" style="color:#f55;">100</span> / <span id="ui-maxhp">100</span><br>
-                    Monety: <span id="ui-coins" style="color:#daaa00;">0</span> 🪙<br>
+                    Monety: <span id="ui-coins" style="color:#fc0;">0</span> 🪙<br>
                     Świat: <span id="ui-worldname" style="color:#5f5;">-</span><br>
                     Piętro: <span id="ui-dlvl">1</span>
                 </div>
@@ -164,7 +90,7 @@
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button class="btn gold" onclick="window.openCrafting()">Kowalstwo</button>
                     <button class="btn blue" onclick="window.saveGame()">Zapisz Grę</button>
-                    <button class="btn" onclick="window.closeOverlay('inventory-overlay')">Wróć do gry</button>
+                    <button class="btn" onclick="window.closeOverlay('inventory-overlay')">Wróć (E)</button>
                 </div>
             </div>
         </div>
@@ -211,455 +137,6 @@
         </div>
     </div>
 
-<script>
-    // ==========================================
-    // 1. NIEZAWODNY SYSTEM KONT I LOGOWANIA
-    // ==========================================
-    const STORAGE_KEY = 'fantasy_odyssey_v16_final'; // Nowy klucz zapobiega wczytaniu starych, zepsutych danych
-    window.currentUser = null;
-
-    window.getAccounts = function() { 
-        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e) { return {}; }
-    };
-    
-    window.saveAccounts = function(accs) { localStorage.setItem(STORAGE_KEY, JSON.stringify(accs)); };
-
-    window.registerAccount = function() {
-        let u = document.getElementById('acc-username').value.trim();
-        let p = document.getElementById('acc-password').value.trim();
-        if(u.length < 3 || p.length < 3) { alert("BŁĄD: Login i Hasło muszą mieć minimum 3 znaki!"); return; }
-        
-        let accs = window.getAccounts();
-        if(accs[u]) { alert("BŁĄD: Konto o takiej nazwie już istnieje!"); return; }
-        
-        accs[u] = { password: p, saveGame: null };
-        window.saveAccounts(accs); 
-        alert("SUKCES! Utworzono konto. Możesz się teraz zalogować.");
-    };
-
-    window.loginAccount = function() {
-        let u = document.getElementById('acc-username').value.trim();
-        let p = document.getElementById('acc-password').value.trim();
-        let accs = window.getAccounts();
-        
-        if(accs[u] && accs[u].password === p) {
-            window.currentUser = u;
-            document.getElementById('login-screen').style.display = 'none'; 
-            document.getElementById('main-menu').style.display = 'flex';
-            document.getElementById('logged-user-name').innerText = window.currentUser;
-        } else { 
-            alert("BŁĄD: Podano błędny login lub hasło!"); 
-        }
-    };
-
-    window.logoutAccount = function() {
-        clearInterval(window.monsterInterval);
-        window.currentUser = null; 
-        document.getElementById('main-menu').style.display = 'none'; 
-        document.getElementById('login-screen').style.display = 'flex';
-    };
-
-    window.saveGame = function() {
-        if(!window.currentUser) return;
-        const gameState = { player, map, entities, currentLevel, selectedWorld, currentBiomeIndex, difficulty, diffMult, logs };
-        let accs = window.getAccounts(); 
-        accs[window.currentUser].saveGame = gameState; 
-        window.saveAccounts(accs);
-        window.logMsg(`💾 Gra zapisana na koncie!`, "log-epic");
-    };
-
-    window.loadGame = function() {
-        if(!window.currentUser) return;
-        let accs = window.getAccounts(); 
-        let s = accs[window.currentUser].saveGame;
-        if(!s) { alert(`Brak pliku zapisu na tym koncie!`); return; }
-        
-        // Wczytywanie stanu
-        player = s.player; map = s.map; entities = s.entities; currentLevel = s.currentLevel; 
-        selectedWorld = s.selectedWorld; currentBiomeIndex = s.currentBiomeIndex; 
-        difficulty = s.difficulty; diffMult = s.diffMult; logs = s.logs || [];
-        
-        window.startEngine();
-        window.logMsg(`💾 Wczytano grę z chmury.`, "log-epic");
-    };
-
-    // ==========================================
-    // 2. BAZA DANYCH I SYSTEM EKWIPUNKU
-    // ==========================================
-    const INV_SIZE = 20; // 9 Hotbar + 11 Main
-    
-    const ITEM_DB = {
-        'wood': { sym: '🪵', name: 'Drewno', type: 'mat' },
-        'steel': { sym: '⛓️', name: 'Stal', type: 'mat' },
-        'fire': { sym: '🔥', name: 'Ogień', type: 'mat' },
-        'magic': { sym: '✨', name: 'Magia', type: 'mat' },
-        'pot': { sym: '🧪', name: 'Mikstura HP', type: 'use', action: (p)=>{ p.hp=Math.min(p.maxHp, p.hp+50); window.logMsg("Leczysz 50 HP.","log-heal"); } },
-        'bomb': { sym: '💣', name: 'Bomba', type: 'combat' },
-        'key': { sym: '🔑', name: 'Klucz Skarbca', type: 'key' }
-    };
-
-    const WEAPONS = [ {name: "Pięści", dmg: 0}, {name: "Sztylet", dmg: 5}, {name: "Stalowy Miecz", dmg: 15}, {name: "Krasnoludzki Topór", dmg: 35}, {name: "Ostrze Zagłady", dmg: 100} ];
-    const ARMORS = [ {name: "Szmaty", def: 0}, {name: "Skórzana Kurta", def: 5}, {name: "Żelazna Zbroja", def: 15}, {name: "Mithril", def: 40} ];
-    const BELTS = [ {name: "Brak", cap: 5}, {name: "Skórzany Pas", cap: 15}, {name: "Pas Tytanów", cap: 50} ];
-
-    const RECIPES = [
-        {name: "Skórzany Pas (Max Stack x15)", req: {wood: 5}, action: (p)=>{ p.belt = BELTS[1]; window.logMsg("Masz lepszy pas!"); }},
-        {name: "Stalowy Miecz (+15 Dmg)", req: {steel: 3, wood: 1}, action: (p)=>{ p.weapon = WEAPONS[2]; window.logMsg("Wykuto Miecz!"); }},
-        {name: "Krasnoludzki Topór (+35 Dmg)", req: {steel: 10, fire: 5}, action: (p)=>{ p.weapon = WEAPONS[3]; window.logMsg("Wykuto Topór!"); }},
-        {name: "Ostrze Zagłady (+100 Dmg)", req: {steel: 30, magic: 20, fire: 20}, action: (p)=>{ p.weapon = WEAPONS[4]; window.logMsg("Wykuto Legendę!", "log-epic"); }},
-        {name: "Żelazna Zbroja (+15 Def)", req: {steel: 8}, action: (p)=>{ p.armor = ARMORS[2]; }},
-        {name: "Mikstura Leczenia", req: {magic: 1, wood: 1}, action: (p)=>{ window.addToInventory('pot', 1); window.logMsg("Uwarzono Miksturę!"); }},
-        {name: "Bomba Obszarowa", req: {fire: 2, steel: 1}, action: (p)=>{ window.addToInventory('bomb', 1); window.logMsg("Zbudowano Bombę!"); }}
-    ];
-
-    const WORLDS = {
-        human: { title: "Ludzkie Królestwa", tex: 'tex-human', mobs: [ {n: "Wilk", s: "🐺", hp: 30, d: 8}, {n: "Goblin", s: "👺", hp: 40, d: 12} ] },
-        elf: { title: "Świat Elfów", tex: 'tex-elf', mobs: [ {n: "Strażnik", s: "🧝", hp: 45, d: 10}, {n: "Wróżka", s: "🧚", hp: 20, d: 15} ] },
-        dwarf: { title: "Podziemia Krasnoludów", tex: 'tex-dwarf', mobs: [ {n: "Krasnolud", s: "🧔", hp: 60, d: 15}, {n: "Żywiołak", s: "🔥", hp: 100, d: 35} ] },
-        homunculus: { title: "Laboratoria", tex: 'tex-human', mobs: [ {n: "Szczur", s: "🐀", hp: 35, d: 15}, {n: "Homunkulus", s: "👁️", hp: 160, d: 40} ] }
-    };
-
-    let player = {
-        x: 1, z: 1, dir: 1, angle: 90, hp: 100, maxHp: 100, lvl: 1, coins: 0, baseDmg: 5, baseArmor: 0,
-        weapon: WEAPONS[0], armor: ARMORS[0], belt: BELTS[0],
-        inventory: new Array(INV_SIZE).fill(null), selectedSlot: 0
-    };
-
-    // Logika Inventory
-    window.getInventoryCount = function(id) { return player.inventory.filter(i => i && i.id === id).reduce((sum, i) => sum + i.count, 0); };
-    window.removeInventoryItem = function(id, amount) {
-        let remaining = amount;
-        for(let i = player.inventory.length - 1; i >= 0; i--) {
-            if(player.inventory[i] && player.inventory[i].id === id) {
-                if(player.inventory[i].count >= remaining) {
-                    player.inventory[i].count -= remaining;
-                    if(player.inventory[i].count === 0) player.inventory[i] = null;
-                    window.updateInventoryUI(); return true;
-                } else { remaining -= player.inventory[i].count; player.inventory[i] = null; }
-            }
-        } return false;
-    };
-    window.addToInventory = function(id, amount) {
-        let maxStack = player.belt.cap; let remaining = amount;
-        for(let i=0; i<INV_SIZE; i++) {
-            if(player.inventory[i] && player.inventory[i].id === id && player.inventory[i].count < maxStack) {
-                let space = maxStack - player.inventory[i].count;
-                if(remaining <= space) { player.inventory[i].count += remaining; window.updateInventoryUI(); return true; }
-                else { player.inventory[i].count = maxStack; remaining -= space; }
-            }
-        }
-        for(let i=0; i<INV_SIZE; i++) {
-            if(!player.inventory[i]) {
-                if(remaining <= maxStack) { player.inventory[i] = {id: id, count: remaining}; window.updateInventoryUI(); return true; }
-                else { player.inventory[i] = {id: id, count: maxStack}; remaining -= maxStack; }
-            }
-        }
-        window.logMsg("Plecak jest pełny!", "log-dmg"); return false;
-    };
-
-    window.updateInventoryUI = function() {
-        let hotbarHTML = ''; let mainHTML = '';
-        for(let i=0; i<INV_SIZE; i++) {
-            let item = player.inventory[i];
-            let sym = item ? ITEM_DB[item.id].sym : '';
-            let cnt = item ? `<div class="inv-count">${item.count}</div>` : '';
-            let html = `<div class="inv-slot ${i === player.selectedSlot ? 'active' : ''}" onclick="window.selectSlot(${i})">${sym}${cnt}</div>`;
-            if(i < 9) hotbarHTML += html; else mainHTML += html;
-        }
-        document.getElementById('inv-hotbar').innerHTML = hotbarHTML;
-        document.getElementById('inv-grid-main').innerHTML = mainHTML;
-    };
-
-    window.selectSlot = function(idx) {
-        player.selectedSlot = idx;
-        let item = player.inventory[idx];
-        if(item && ITEM_DB[item.id].type === 'use') {
-            ITEM_DB[item.id].action(player);
-            item.count--; if(item.count <= 0) player.inventory[idx] = null;
-        } else if(item) { window.logMsg(`Wybrano: ${ITEM_DB[item.id].name}`); }
-        window.updateInventoryUI(); window.updateHUD();
-    };
-
-    // ==========================================
-    // 3. SILNIK 3D, PROCEDURALNE GENEROWANIE I CZAS RZECZYWISTY
-    // ==========================================
-    const MAP_SIZE = 24; const TILE_SIZE = 300;
-    const T_WALL = 1, T_FLOOR = 0, T_DOOR = 2, T_EXIT = 3, T_PORTAL = 4, T_MEGA_PORTAL = 5;
-    const DIRS = [ {dx: 0, dz: -1}, {dx: 1, dz: 0}, {dx: 0, dz: 1}, {dx: -1, dz: 0} ];
-    
-    let map = [], entities = [], logs = [];
-    let state = 'MENU', difficulty = 1, diffMult = 1.0;
-    let currentLevel = 1, currentBiomeIndex = 0, selectedWorld = 'human';
-    let currentEnemy = null; window.monsterInterval = null;
-
-    window.logMsg = function(msg, type='log-new') { logs.unshift(`<span class="${type}">• ${msg}</span><br>`); if(logs.length > 7) logs.pop(); document.getElementById('log-box').innerHTML = logs.join(''); }
-    window.closeOverlay = function(id) { state = 'EXPLORE'; document.getElementById(id).style.display = 'none'; }
-    window.openOverlay = function(id) { state = 'MENU'; document.getElementById(id).style.display = 'flex'; }
-
-    window.startGameSingle = function() {
-        document.getElementById('main-menu').style.display = 'none';
-        
-        difficulty = parseInt(document.getElementById('diff-selector').value);
-        if(difficulty === 2) diffMult = 1.5; if(difficulty === 3) diffMult = 2.0;
-
-        player.hp = 100; player.maxHp = 100; player.coins = 0; player.inventory.fill(null);
-        window.addToInventory('pot', 2); window.addToInventory('bomb', 1);
-        
-        window.startEngine();
-    };
-
-    window.startEngine = function() {
-        document.getElementById('game-view').style.display = 'block';
-        state = 'EXPLORE';
-        window.generateLevel(); 
-        window.updateHUD();
-
-        clearInterval(window.monsterInterval);
-        if(difficulty > 1) {
-            let speed = difficulty === 3 ? 1000 : 2000;
-            window.monsterInterval = setInterval(() => {
-                if(state === 'EXPLORE') { window.moveMonstersRealTime(); }
-            }, speed);
-            window.logMsg("POTWORY ŻYJĄ! Uważaj, gonitwa rozpoczęta.", "log-dmg");
-        }
-    };
-
-    window.generateLevel = function() {
-        map = []; entities = [];
-        for(let z=0; z<MAP_SIZE; z++) { map[z] = []; for(let x=0; x<MAP_SIZE; x++) map[z][x] = T_WALL; }
-        player.x = Math.floor(MAP_SIZE/2); player.z = Math.floor(MAP_SIZE/2); map[player.z][player.x] = T_FLOOR;
-
-        let floorCount = 0;
-        while(floorCount < 200) {
-            let d = Math.floor(Math.random()*4);
-            if(d===0 && player.z>2) player.z--; else if(d===1 && player.z<MAP_SIZE-3) player.z++;
-            else if(d===2 && player.x>2) player.x--; else if(d===3 && player.x<MAP_SIZE-3) player.x++;
-            if(map[player.z][player.x] === T_WALL) { map[player.z][player.x] = T_FLOOR; floorCount++; }
-        }
-
-        player.x = Math.floor(MAP_SIZE/2); player.z = Math.floor(MAP_SIZE/2); player.dir = 0; player.angle = 0;
-
-        let empty = () => { while(true) { let x=Math.floor(Math.random()*MAP_SIZE), z=Math.floor(Math.random()*MAP_SIZE); if(map[z][x]===T_FLOOR && (x!==player.x||z!==player.z)) return {x,z}; } };
-        
-        let ex = empty(); map[ex.z][ex.x] = T_EXIT;
-        let pm = empty(); map[pm.z][pm.x] = T_MEGA_PORTAL;
-
-        for(let i=0; i<3; i++) { let p=empty(); entities.push({x:p.x, z:p.z, sym: '🧪', id: 'pot'}); }
-        for(let i=0; i<4; i++) { let p=empty(); entities.push({x:p.x, z:p.z, sym: '🪵', id: 'wood'}); }
-        for(let i=0; i<3; i++) { let p=empty(); entities.push({x:p.x, z:p.z, sym: '⛓️', id: 'steel'}); }
-
-        let wData = WORLDS[selectedWorld];
-        let mCount = 4 + currentLevel;
-        for(let i=0; i<mCount; i++) {
-            let p = empty(); let mob = wData.mobs[Math.floor(Math.random()*wData.mobs.length)];
-            entities.push({x:p.x, z:p.z, sym: mob.s, isEnemy: true, name: mob.n, hp: mob.hp*diffMult, maxHp: mob.hp*diffMult, dmg: mob.d*diffMult});
-        }
-
-        window.buildCSS3D(); window.drawMinimap(); window.updateInventoryUI();
-    };
-
-    window.createBlock = function(x, z, baseClass, innerHtml, container) {
-        const faces = [ { rx: 0, ry: 0, tz: TILE_SIZE/2 }, { rx: 0, ry: 180, tz: TILE_SIZE/2 }, { rx: 0, ry: 90, tz: TILE_SIZE/2 }, { rx: 0, ry: -90, tz: TILE_SIZE/2 } ];
-        faces.forEach(f => {
-            let face = document.createElement('div'); face.className = baseClass; if(innerHtml) face.innerHTML = innerHtml;
-            face.style.transform = `translate3d(${x*TILE_SIZE}px, 0, ${z*TILE_SIZE}px) rotateY(${f.ry}deg) translateZ(${f.tz}px)`;
-            container.appendChild(face);
-        });
-    };
-
-    window.buildCSS3D = function() {
-        let world = document.getElementById('world'); world.innerHTML = ''; 
-        let texClass = WORLDS[selectedWorld].tex;
-
-        for(let z=0; z<MAP_SIZE; z++) {
-            for(let x=0; x<MAP_SIZE; x++) {
-                let t = map[z][x];
-                if(t !== T_FLOOR) {
-                    let cls = `wall ${t === T_WALL ? texClass : ''}`;
-                    let html = "";
-                    if(t === T_PORTAL || t === T_MEGA_PORTAL) { cls += ' tex-portal'; html = "<div class='wall-text'>WYMIAR</div>"; }
-                    if(t === T_EXIT) { cls += ' tex-exit'; html = "<div class='wall-text'>WYJŚCIE</div>"; }
-                    if(t === T_DOOR) { cls += ' tex-door'; }
-                    window.createBlock(x, z, cls, html, world);
-                }
-            }
-        }
-
-        entities.forEach(e => {
-            let s = document.createElement('div'); s.className = 'sprite'; s.innerHTML = e.sym; s.id = `ent_${e.x}_${e.z}`;
-            s.style.transform = `translate3d(${e.x*TILE_SIZE}px, 0, ${e.z*TILE_SIZE}px) rotateY(${-player.angle}deg)`;
-            world.appendChild(s);
-        });
-
-        window.updateCamera();
-    };
-
-    window.updateCamera = function() {
-        let px = player.x * TILE_SIZE; let pz = player.z * TILE_SIZE;
-        // Kamera jest lekko cofnięta (translateZ), by nie wchodzić w ściany
-        document.getElementById('world').style.transform = `translateZ(200px) rotateY(${-player.angle}deg) translate3d(${-px}px, 0, ${-pz}px)`;
-        
-        document.querySelectorAll('.sprite').forEach(s => {
-            let coords = s.id.split('_'); let ex = coords[1] * TILE_SIZE; let ez = coords[2] * TILE_SIZE;
-            s.style.transform = `translate3d(${ex}px, 0, ${ez}px) rotateY(${player.angle}deg)`;
-        });
-    };
-
-    window.drawMinimap = function() {
-        const mCtx = document.getElementById('minimap').getContext('2d');
-        const W = 180; const TS = W / MAP_SIZE;
-        mCtx.fillStyle = '#0a0a0f'; mCtx.fillRect(0, 0, W, W);
-        for(let z=0; z<MAP_SIZE; z++) {
-            for(let x=0; x<MAP_SIZE; x++) {
-                if(map[z][x] === T_FLOOR) mCtx.fillStyle = '#334'; else if(map[z][x]===T_EXIT) mCtx.fillStyle='#aaa'; else if(map[z][x]===T_MEGA_PORTAL) mCtx.fillStyle='#0ff'; else continue;
-                mCtx.fillRect(x*TS, z*TS, TS+0.5, TS+0.5);
-            }
-        }
-        entities.forEach(e => { mCtx.fillStyle = e.isEnemy ? '#f33' : '#fc0'; mCtx.fillRect(e.x*TS+1, e.z*TS+1, TS-2, TS-2); });
-        
-        mCtx.save(); mCtx.translate(player.x * TS + TS/2, player.z * TS + TS/2); mCtx.rotate(player.dir * Math.PI/2); 
-        mCtx.fillStyle = '#5f5'; mCtx.beginPath(); mCtx.moveTo(0, -TS/2); mCtx.lineTo(TS/2, TS/2); mCtx.lineTo(-TS/2, TS/2); mCtx.fill(); mCtx.restore();
-    };
-
-    window.updateHUD = function() {
-        document.getElementById('ui-hp').innerText = Math.floor(player.hp);
-        document.getElementById('ui-maxhp').innerText = player.maxHp;
-        document.getElementById('ui-coins').innerText = player.coins;
-        document.getElementById('ui-dlvl').innerText = currentLevel;
-        document.getElementById('ui-worldname').innerText = WORLDS[selectedWorld].title;
-        
-        document.getElementById('ch-hp').innerText = `${Math.floor(player.hp)}/${player.maxHp}`;
-        document.getElementById('ch-dmg').innerText = player.baseDmg + player.weapon.dmg;
-        document.getElementById('ch-def').innerText = player.baseArmor + player.armor.def;
-        document.getElementById('ch-wep').innerText = player.weapon.name;
-        document.getElementById('ch-arm').innerText = player.armor.name;
-        document.getElementById('ch-belt').innerText = `${player.belt.name} (Max x${player.belt.cap})`;
-    };
-
-    window.moveMonstersRealTime = function() {
-        let combatTriggered = false;
-        entities.forEach(e => {
-            if(e.isEnemy) { 
-                let dx = Math.sign(player.x - e.x); let dz = Math.sign(player.z - e.z);
-                if(Math.random() > 0.3) { 
-                    if(Math.random()>0.5 && dx!==0 && map[e.z][e.x+dx]===T_FLOOR && !(e.x+dx===player.x && e.z===player.z)) e.x += dx;
-                    else if(dz!==0 && map[e.z+dz][e.x]===T_FLOOR && !(e.x===player.x && e.z+dz===player.z)) e.z += dz;
-                }
-                if(e.x === player.x && e.z === player.z) {
-                    currentEnemy = e; combatTriggered = true;
-                }
-            }
-        });
-        if(combatTriggered && state === 'EXPLORE') {
-            state = 'COMBAT'; window.openOverlay('combat-overlay');
-            document.getElementById('c-enemy-name').innerText = currentEnemy.name; document.getElementById('enemy-sprite').innerText = currentEnemy.sym;
-            window.updateCombatUI();
-        } else { window.buildCSS3D(); window.drawMinimap(); }
-    };
-
-    window.movePlayer = function(moveType) {
-        if(state !== 'EXPLORE') return;
-        if(moveType === 'LEFT') { player.dir = (player.dir + 3) % 4; player.angle -= 90; }
-        if(moveType === 'RIGHT') { player.dir = (player.dir + 1) % 4; player.angle += 90; }
-        
-        if(moveType === 'FORWARD' || moveType === 'BACK') {
-            let vec = DIRS[player.dir]; let sign = moveType === 'FORWARD' ? 1 : -1;
-            let nx = player.x + vec.dx * sign; let nz = player.z + vec.dz * sign;
-            
-            let t = map[nz][nx];
-            if(t !== T_WALL && t !== T_DOOR) {
-                if(t === T_EXIT) { currentLevel++; window.generateLevel(); return; }
-                if(t === T_MEGA_PORTAL) { window.openOverlay('portal-overlay'); return; }
-
-                player.x = nx; player.z = nz;
-                
-                let cam = document.getElementById('camera'); cam.classList.remove('head-bob'); void cam.offsetWidth; cam.classList.add('head-bob');
-
-                let entIdx = entities.findIndex(e => e.x === nx && e.z === nz);
-                if(entIdx !== -1) {
-                    let e = entities[entIdx];
-                    if(!e.isEnemy) {
-                        if(window.addToInventory(e.id, 1)) { window.logMsg(`Zebrałeś: ${ITEM_DB[e.id].name}`); entities.splice(entIdx, 1); window.buildCSS3D(); }
-                    } else {
-                        currentEnemy = e; window.openOverlay('combat-overlay');
-                        document.getElementById('c-enemy-name').innerText = currentEnemy.name; document.getElementById('enemy-sprite').innerText = currentEnemy.sym;
-                        window.updateCombatUI(); return;
-                    }
-                }
-            }
-        }
-        window.updateCamera(); window.drawMinimap();
-    };
-
-    // --- KOWAL I PORTALE ---
-    window.openCrafting = function() {
-        window.openOverlay('crafting-overlay');
-        let c = document.getElementById('craft-container'); c.innerHTML = '';
-        RECIPES.forEach((r, idx) => {
-            let reqStr = Object.entries(r.req).map(([k, v]) => `${ITEM_DB[k].name}:${v}`).join(', ');
-            c.innerHTML += `<div style="background:#223; padding:10px; border-radius:6px; border:1px solid #445; font-size:12px; cursor:pointer;" onclick="window.craft(${idx})"><b style="color:#0ff;">${r.name}</b><br><span style="color:#aaa;">Wymaga: ${reqStr}</span></div>`;
-        });
-    };
-
-    window.craft = function(idx) {
-        let r = RECIPES[idx]; let canCraft = true;
-        for(let key in r.req) { if(window.getInventoryCount(key) < r.req[key]) canCraft = false; }
-        if(canCraft) {
-            for(let key in r.req) { window.removeInventoryItem(key, r.req[key]); }
-            r.action(player); window.openCrafting(); window.updateHUD();
-        } else { window.logMsg("Brakuje surowców w plecaku!", "log-dmg"); }
-    };
-
-    window.travelToWorld = function(wId) {
-        selectedWorld = wId; currentLevel++; 
-        window.logMsg(`Przeszedłeś przez portal do wymiaru!`, "log-epic"); 
-        window.closeOverlay('portal-overlay'); window.generateLevel(); 
-    };
-
-    // --- WALKA ---
-    window.updateCombatUI = function() {
-        document.getElementById('c-enemy-hp-bar').style.width = Math.max(0, (currentEnemy.hp / currentEnemy.maxHp) * 100) + '%'; 
-        document.getElementById('c-player-hp-bar').style.width = Math.max(0, (player.hp / player.maxHp) * 100) + '%'; 
-        document.getElementById('c-player-hp-text').innerText = Math.floor(player.hp); 
-    };
-
-    window.combatAction = function(action) {
-        let dmg = player.baseDmg + player.weapon.dmg;
-        let arm = player.baseArmor + player.armor.def;
-
-        if(action === 'Zwykly') { currentEnemy.hp -= dmg; window.logMsg(`Zadajesz ${dmg} obr.`); }
-        if(action === 'Silny') { if(Math.random()<0.5) { currentEnemy.hp -= dmg*2; window.logMsg(`KRYTYK! ${dmg*2} obr!`, "log-epic"); } else window.logMsg("Pudło!", "log-dmg"); }
-        if(action === 'Bomba') { if(window.removeInventoryItem('bomb', 1)) { currentEnemy.hp -= 100; window.logMsg("BUM! 100 obr!"); } else { window.logMsg("Brak bomb!"); return; } }
-        if(action === 'Mikstura') { if(window.removeInventoryItem('pot', 1)) { player.hp = Math.min(player.maxHp, player.hp+50); window.logMsg("Leczysz się."); } else return; }
-        if(action === 'Ucieczka') { if(Math.random()<0.6) { window.closeOverlay('combat-overlay'); return; } else window.logMsg("Ucieczka nieudana!", "log-dmg"); }
-
-        if(currentEnemy.hp <= 0) {
-            window.logMsg(`Zwycięstwo! Zyskujesz 25 monet.`, "log-heal"); player.coins += 25;
-            entities.splice(entities.findIndex(e => e === currentEnemy), 1);
-            window.closeOverlay('combat-overlay'); currentEnemy = null; window.buildCSS3D(); window.drawMinimap(); window.updateHUD(); return;
-        }
-
-        let enemyDmg = Math.max(1, (currentEnemy.dmg + Math.floor(Math.random()*5)) - arm); 
-        player.hp -= enemyDmg; window.logMsg(`Otrzymujesz ${enemyDmg} obr!`, "log-dmg"); 
-        
-        if(player.hp <= 0) { player.hp = 0; window.logMsg("💀 ZGINĄŁEŚ!", "log-dmg"); clearInterval(window.monsterInterval); alert("Koniec Gry! Odśwież stronę."); location.reload(); }
-        window.updateCombatUI(); window.updateHUD();
-    };
-
-    // --- KLAWIATURA ---
-    window.addEventListener('keydown', (e) => {
-        let k = e.key.toLowerCase();
-        if(state === 'EXPLORE') {
-            if(k === 'w' || e.code === 'ArrowUp') window.movePlayer('FORWARD');
-            if(k === 's' || e.code === 'ArrowDown') window.movePlayer('BACK');
-            if(k === 'a' || e.code === 'ArrowLeft') window.movePlayer('LEFT');
-            if(k === 'd' || e.code === 'ArrowRight') window.movePlayer('RIGHT');
-            if(k === 'e') window.openOverlay('inventory-overlay');
-            if(!isNaN(k) && k > 0 && k <= 9) window.selectSlot(k - 1);
-        } else if (k === 'e' && state === 'MENU') {
-            window.closeOverlay('inventory-overlay'); window.closeOverlay('crafting-overlay');
-        }
-    });
-</script>
+    <script type="module" src="main.js"></script>
 </body>
 </html>
